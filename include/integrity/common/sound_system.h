@@ -5,7 +5,7 @@
 #define SOUND (1)
 #define WAVLOAD (1)
 #endif
-#if defined(WINDOWS)
+#if defined(_WIN32)
 #define SOUND (1)
 #endif
 #if defined(PSP)

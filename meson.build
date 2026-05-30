@@ -21,7 +21,8 @@ arg_linker = []
 
 # Dependencies
 cc = meson.get_compiler('c')
-m_dep = cc.find_library('m', required: true)
+m_dep = cc.find_library('m', required: false)
+
 umka_dep = dependency('umka-lang', fallback: ['umka', 'umka_dep'])
 stb_dep = dependency('stb', fallback: ['stb', 'stb_dep'])
 cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
@@ -86,10 +87,13 @@ if opt_platform == 'linux'
   endif
 
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
-  openal_dep = dependency('openal', fallback: ['openal', 'openal_dep'])
-  cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
+  openal_dep = dependency(
+    'openal',
+    fallback: ['openal', 'openal_dep'],
+    default_options: ['utils=false'],
+  )
 
-  platform_dep += [glfw_dep, openal_dep, cglm_dep]
+  platform_dep += [glfw_dep, openal_dep]
   platform_src += files(
     'src/desktop/glad.c',
     'src/desktop/glfw_input.c',
@@ -117,11 +121,14 @@ elif opt_platform == 'macos'
     ]
   endif
 
-  #glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
-  openal_dep = dependency('openal-soft', fallback: ['openal-soft', 'openal_dep'])
+  openal_dep = dependency(
+    'openal-soft',
+    fallback: ['openal-soft', 'openal_dep'],
+    default_options: ['utils=false'],
+  )
 
-  platform_dep += [glfw_dep, openal_dep, stb_dep, cglm_dep]
+  platform_dep += [glfw_dep, openal_dep]
   platform_src += files(
     'src/desktop/glad.c',
     'src/desktop/glfw_input.c',
@@ -150,10 +157,13 @@ elif opt_platform == 'windows'
   endif
 
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
-  openal_dep = dependency('openal', fallback: ['openal', 'openal_dep'])
-  cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
+  openal_dep = dependency(
+    'openal-soft',
+    fallback: ['openal-soft', 'openal_dep'],
+    default_options: ['utils=false'],
+  )
 
-  platform_dep += [glfw_dep, openal_dep, cglm_dep]
+  platform_dep += [glfw_dep, openal_dep]
   platform_src += files(
     'src/desktop/glad.c',
     'src/desktop/glfw_input.c',
@@ -161,7 +171,6 @@ elif opt_platform == 'windows'
     'src/windows/sys_sound.c',
     'src/windows/sys_windows.c',
   )
-  platform_inc += include_directories('deps/glad/include', 'deps/openal-win/include')
   platform_inc += include_directories('third-party/glad/include')
 
 elif opt_platform == 'dreamcast'
@@ -190,9 +199,8 @@ elif opt_platform == 'dreamcast'
 
   gldc_dep = dependency('gldc', fallback: ['gldc', 'libgldc_dep'])
   crayonvmu_dep = dependency('crayonvmu', fallback: ['crayonvmu', 'libcrayonvmu_dep'])
-  cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
 
-  platform_dep += [gldc_dep, crayonvmu_dep, cglm_dep]
+  platform_dep += [gldc_dep, crayonvmu_dep]
   platform_src += files(
     'src/dreamcast/perfctr.c',
     'src/dreamcast/sys_dreamcast.c',
@@ -240,11 +248,11 @@ elif opt_platform == 'psp'
   ]
   arg_linker += [
     '-specs=/opt/toolchains/pspdev/psp/sdk/lib/prxspecs',
+    '-Wl,-q,-T/opt/toolchains/pspdev/psp/sdk/lib/linkfile.prx', '/opt/toolchains/pspdev/psp/sdk/lib/prxexports.o',
   ]
 
   #openal_dep = dependency('openal', fallback : ['openal', 'openal_dep'])
   pspgl_dep = dependency('pspgl', fallback: ['pspgl', 'pspgl_dep'])
-  cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
 
   #openal_lib_path = cc.find_library(
   #    'openal-soft',
@@ -256,7 +264,7 @@ elif opt_platform == 'psp'
   #    include_directories: include_directories('deps/openal-psp/include'),
   #)
 
-  platform_dep += [pspgl_dep, cglm_dep]
+  platform_dep += [pspgl_dep]
   platform_src += files('src/psp/sys_psp.c', 'src/psp/sys_sound.c')
 
 else
@@ -270,8 +278,8 @@ dep = [dep_base, platform_dep]
 arg_c = [arg_base, arg_code]
 
 # Build the library
-gamejam_lib = static_library(
-  'gamejam',
+integrity_lib = static_library(
+  'integrity',
   c_args: arg_c,
   link_args: arg_linker,
   sources: src_files,
@@ -284,13 +292,13 @@ gamejam_lib = static_library(
 subdir('src/cooker')
 
 # Examples
-# Declare gamejam library for examples
-gamejam_dep = declare_dependency(
+# Declare integrity library for examples
+integrity_dep = declare_dependency(
   include_directories: include_directories('include'),
   compile_args: arg_c,
   link_args: arg_linker,
   dependencies: [platform_dep],
-  link_with: gamejam_lib,
+  link_with: integrity_lib,
 )
 
 subdir('examples')

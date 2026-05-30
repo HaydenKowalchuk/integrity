@@ -7,8 +7,12 @@ example_hello_exe = executable(
   sources: example_src,
   include_directories: inc,
   dependencies: dep,
-  link_with: gamejam_lib,
+  link_with: integrity_lib,
   install: true,
 )
 
-run_target('run_hello', command: [example_hello_exe])
+# Only create the run target if we aren't cross-compiling,
+# OR if an executor wrapper is explicitly available.
+if not meson.is_cross_build() or meson.can_run_host_binaries()
+  run_target('run_hello', command: [example_hello_exe])
+endif

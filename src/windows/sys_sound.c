@@ -13,7 +13,6 @@
 typedef unsigned int ALuint;
 #endif
 
-#include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -29,7 +28,7 @@ typedef unsigned int ALuint;
 #include <audio/wave.h>
 #define BACKEND "libaudio"
 #elif defined(WAVLOAD)
-#include "snd_wavload.h"
+#include <integrity/common/snd_wavload.h>
 #define BACKEND "wavload"
 #else
 #include <AL/alut.h>

@@ -148,7 +148,7 @@ For Linux and Windows cross-builds, provide your own cross file or use a native 
 
 ## Output
 
-The build produces `libgamejam.a` (static library) and the `cooker` asset processing tool.
+The build produces `libintegrity.a` (static library) and the `cooker` asset processing tool.
 
 ## Examples
 

@@ -8,10 +8,15 @@ input_test_exe = executable(
   sources: example_src,
   include_directories: inc,
   dependencies: dep,
-  link_with: gamejam_lib,
+  link_with: integrity_lib,
   install: true,
 )
-run_target('run_input_test', command: [input_test_exe])
+
+# Only create the run target if we aren't cross-compiling,
+# OR if an executor wrapper is explicitly available.
+if not meson.is_cross_build() or meson.can_run_host_binaries()
+  run_target('run_input_test', command: [input_test_exe])
+endif
 
 #PSP post - processing
 if opt_platform == 'psp'

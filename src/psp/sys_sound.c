@@ -13,7 +13,9 @@
 typedef unsigned int ALuint;
 #endif
 
+#include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -224,13 +226,4 @@ int SYS_SND_Destroy(void) {
   alcCloseDevice(device);
 #endif
   return 0;
-}
-
-unsigned int _controlfp(unsigned int new, unsigned int mask) {
-  (void)new;
-  (void)mask;
-
-  unsigned int fpu_oldcw;
-  fpu_oldcw = __builtin_mips_get_fcsr();
-  return fpu_oldcw;
 }

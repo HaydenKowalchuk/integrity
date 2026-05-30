@@ -70,7 +70,30 @@ void error_func(int a, const char* str) {
   printf("GLFW Error[%d]: %s\n", a, str);
 }
 
-int __attribute__((weak)) main(int argc, char** argv) {
+int startup(int argc, char** argv);
+#if defined(_WIN32)
+int main(int argc, char** argv);
+int WinMain(void* a, void* b, char** c, int d) {
+  (void)a;
+  (void)b;
+  (void)c;
+  (void)d;
+  return startup(0, NULL);
+}
+
+int wWinMain(void* a, void* b, char** c, int d) {
+  (void)a;
+  (void)b;
+  (void)c;
+  (void)d;
+  return startup(0, NULL);
+}
+#else
+int main(int argc, char** argv){
+  return startup(argc, argv);
+}
+#endif
+int startup(int argc, char** argv) {
   glfwSetErrorCallback(&error_func);
 
   if (!glfwInit()) {

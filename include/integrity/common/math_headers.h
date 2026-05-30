@@ -1,23 +1,24 @@
 #pragma once
 
 #include <math.h>
+#include <cglm/cglm.h>
 
-#ifdef PSP
+#if defined (PSP)
 #include <pspmath.h>
 #define SIN(x) sinf(x)
 #define COS(x) cosf(x)
 #define SQRT(x) sqrtf(x)
 #endif
-#ifdef _arch_dreamcast
+
+#if defined(_arch_dreamcast)
 #include <dc/fmath.h>
 #define SIN(x) fsin(x)
 #define COS(x) fcos(x)
 #define SQRT(x) fsqrt(x)
 #endif
-#if defined(WINDOWS) || defined(__linux__) || defined(__APPLE__)
+
+#if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
 #define SIN(x) sinf(x)
 #define COS(x) cosf(x)
 #define SQRT(x) sqrtf(x)
 #endif
-
-#include <cglm/cglm.h>
