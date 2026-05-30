@@ -6,7 +6,7 @@ This project now uses Meson as its primary build system, replacing the complex m
 
 ```bash
 # Cross-compile for Mac
-meson setup build-linux --buildtype=debug -Dplatform=macos
+meson setup build-macos --buildtype=release -Dplatform=macos
 meson compile -C build-macos
 
 # Cross-compile for Linux

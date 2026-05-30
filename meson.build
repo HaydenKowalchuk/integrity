@@ -31,17 +31,14 @@ opt_buildtype = get_option('buildtype')
 
 inc_base = []
 inc_base += include_directories('include')
-#inc_base += include_directories('deps')
-inc_base += include_directories('deps/stb/include')
-inc_base += include_directories('deps/cute_c2')
-inc_base += include_directories('deps/tinyobj_loader')
+inc_base += include_directories('third-party/cute_c2')
+inc_base += include_directories('third-party/tinyobj_loader')
 #inc_base += include_directories('src')
 
 src_files = []
 src_files += files('src/common/2d_physics/aabb_2d.c')
 src_files += files('src/common/2d_physics/2d_rigidbody.c')
 src_files += files('src/common/2d_physics/2d_physics.c')
-src_files += files('src/common/log/log.c')
 src_files += files('src/common/voxel_physics/aabb_3d.c')
 src_files += files('src/common/voxel_physics/voxel_physics.c')
 src_files += files('src/common/voxel_physics/sweep.c')
@@ -85,13 +82,14 @@ if opt_platform == 'linux'
     ]
   endif
 
-  glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
+  #glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
   openal_dep = dependency('openal', fallback: ['openal', 'openal_dep'])
   cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
 
-  platform_dep += [glad_dep, glfw_dep, openal_dep, cglm_dep]
+  platform_dep += [glfw_dep, openal_dep, cglm_dep]
   platform_src += files('src/linux/glad.c', 'src/linux/sys_linux.c', 'src/linux/sys_sound.c')
+  platform_inc += include_directories('third-party/glad/include')
 
 elif opt_platform == 'macos'
   arg_code += ['-DPLATFORM_MACOS', '-DDESKTOP']
@@ -111,14 +109,15 @@ elif opt_platform == 'macos'
     ]
   endif
 
-  glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
+  #glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
   openal_dep = dependency('openal-soft', fallback: ['openal-soft', 'openal_dep'])
   stb_dep = dependency('stb', fallback: ['stb', 'stb_dep'])
   cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
 
-  platform_dep += [glad_dep, glfw_dep, openal_dep, stb_dep, cglm_dep]
+  platform_dep += [ glfw_dep, openal_dep, stb_dep, cglm_dep]
   platform_src += files('src/macos/glad.c', 'src/macos/sys_macos.c', 'src/macos/sys_sound.c')
+  platform_inc += include_directories('third-party/glad/include')
 
 elif opt_platform == 'windows'
   arg_code += ['-DPLATFORM_WINDOWS', '-DDESKTOP']
@@ -138,18 +137,19 @@ elif opt_platform == 'windows'
     ]
   endif
 
-  glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
+  #glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
   openal_dep = dependency('openal', fallback: ['openal', 'openal_dep'])
   cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
 
-  platform_dep += [glad_dep, glfw_dep, openal_dep, cglm_dep]
+  platform_dep += [ glfw_dep, openal_dep, cglm_dep]
   platform_src += files(
     'src/windows/glad.c',
     'src/windows/sys_sound.c',
     'src/windows/sys_windows.c',
   )
   platform_inc += include_directories('deps/glad/include', 'deps/openal-win/include')
+  platform_inc += include_directories('third-party/glad/include')
 
 elif opt_platform == 'dreamcast'
   arg_code += ['-DPLATFORM_DREAMCAST', '-DBUILD_LIBGL']
@@ -283,4 +283,4 @@ gamejam_dep = declare_dependency(
   link_with: gamejam_lib,
 )
 
-subdir('examples')
+#subdir('examples')

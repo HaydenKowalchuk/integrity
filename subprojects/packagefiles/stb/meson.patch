@@ -1,0 +1,19 @@
+diff -crNb a/meson.build b/meson.build
+*** a/meson.build	1969-12-31 19:00:00.000000000 -0500
+--- b/meson.build	2024-12-22 10:37:07.254045180 -0500
+***************
+*** 0 ****
+--- 1,13 ----
++ project(
++     'stb',
++     'c',
++     version: '1.0',
++     default_options: ['c_std=gnu17', 'b_staticpic=false', 'default_library=static'],
++     meson_version: '>=0.65.0',
++ )
++ 
++ stb_dep = declare_dependency(
++     include_directories: include_directories('.'),
++     dependencies: [],
++ )
++ 

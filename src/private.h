@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef PRIVATE_H
-#define PRIVATE_H
-
 extern void Game_Main(int argc, char **argv);
 extern void Game_Exit(void);
 extern void Host_Update(float time);

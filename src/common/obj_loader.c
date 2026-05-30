@@ -37,7 +37,7 @@ const char *safe_dirname(const char *path) {
   return dir_buffer;
 }
 
-#include "../deps/tinyobj_loader/tinyobj_loader_c.h"
+#include <tinyobj_loader_c.h>
 
 extern char error_str[64];
 

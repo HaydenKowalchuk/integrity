@@ -1,7 +1,7 @@
 #pragma once
 
 #include <integrity/common/common.h>
-#include "integrity/common/renderer_types.h"
+#include <integrity/common/renderer_types.h>
 
 // #ifdef _arch_dreamcast
 //   glVertexPointer(3, GL_FLOAT, sizeof(glvert_fast_t), &_particle_verts[0].vert);
