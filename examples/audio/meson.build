@@ -1,8 +1,7 @@
-#Input test example
-example_src = ['input_test.c']
+example_src = ['audio_scene.c']
 
-example_input_test_exe = executable(
-  'input_test',
+example_audio_exe = executable(
+  'audio',
   c_args: arg_c,
   link_args: arg_linker,
   sources: example_src,
@@ -12,15 +11,28 @@ example_input_test_exe = executable(
   install: true,
 )
 
-# Only create the run target if we aren't cross-compiling,
-# OR if an executor wrapper is explicitly available.
+example_assets = [
+  meson.project_source_root() / 'assets' / 'click.wav',
+]
+
+foreach asset : example_assets
+  # asset.split('/')[-1] grabs just the file name
+  filename = asset.split('/')[-1]
+
+  configure_file(
+    input: asset,
+    output: filename,
+    copy: true,
+  )
+endforeach
+
 if not meson.is_cross_build() or meson.can_run_host_binaries()
-  run_target('run_input_test', command: [example_input_test_exe])
+  run_target('run_audio', command: [example_audio_exe])
 endif
 
 if opt_platform == 'psp'
-  psp_exe = example_input_test_exe
-  psp_title = 'Integrity: Input Test'
+  psp_exe = example_audio_exe
+  psp_title = 'Integrity: Audio'
 
   mksfo = find_program('mksfo', required: true)
   psp_fixup = find_program('psp-fixup-imports', required: true)
@@ -31,13 +43,13 @@ if opt_platform == 'psp'
   pic1 = meson.project_source_root() / 'assets' / 'pic1.png'
 
   sfo = custom_target(
-    'input_test_sfo',
+    'audio_sfo',
     output: 'param.sfo',
     command: [mksfo, psp_title, '@OUTPUT@'],
   )
 
   custom_target(
-    'input_test_pbp',
+    'audio_pbp',
     input: [psp_exe, sfo],
     output: 'EBOOT.PBP',
     command: [

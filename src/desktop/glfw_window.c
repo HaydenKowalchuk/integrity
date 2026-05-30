@@ -143,9 +143,7 @@ int startup(int argc, char** argv) {
   }
 
   if (SYS_SND_Setup() != 0) {
-    printf("Failed to initialize OpenAL\n");
-    /* Should handle Gracefully */
-    /* return -1; */
+    printf("Failed to initialize audio\n");
   }
 
   frame_count = 0;

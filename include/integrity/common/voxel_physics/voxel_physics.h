@@ -1,5 +1,6 @@
 #pragma once
 
+#include <math.h>
 #include <cglm/cglm.h>
 #include <integrity/common/common.h>
 

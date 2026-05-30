@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <integrity/common/voxel_physics/sweep.h>
 #include <integrity/common/voxel_physics/voxel_physics.h>
 
@@ -300,7 +301,7 @@ static bool PHYS_basicCollisonCallback(float dist, int axis, int dir, float* vec
 }
 
 // sweep aabb along velocity vector and set resting vector
-float PHYS_processCollisions(PhysicsSystem* _physics, AABB* box, float* velocity, float* resting) {
+float PHYS_processCollisions(PhysicsSystem* _physics, AABB* box, vec3 velocity, vec3 resting) {
   glm_vec3_copy(GLM_VEC3_ZERO, resting);
 
   _resting = resting;

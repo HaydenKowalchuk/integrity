@@ -4,11 +4,9 @@
 #include <integrity/common/sound_system.h>
 
 #if SOUND
-#define AL_ALEXT_PROTOTYPES 1
-#define ALC_EXT_EFX 1
-#include <AL/al.h>
-#include <AL/alc.h>
-#include <AL/alext.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-ALboolean LoadWAVFile(const char* filename, ALenum* format, ALvoid** data, ALsizei* size, ALsizei* freq);
+int LoadWAVFile(const char* filename, int* format, void** data, int* size, int* freq);
 #endif

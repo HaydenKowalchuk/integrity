@@ -48,7 +48,6 @@ src_files += files('src/common/voxel_physics/voxel_physics.c')
 src_files += files('src/common/voxel_physics/sweep.c')
 src_files += files('src/common/voxel_physics/rigidbody.c')
 src_files += files('src/common/resource_manager.c')
-src_files += files('src/common/snd_wavload.c')
 src_files += files('src/common/renderer.c')
 src_files += files('src/common/input.c')
 src_files += files('src/common/image_loader.c')
@@ -87,19 +86,15 @@ if opt_platform == 'linux'
   endif
 
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
-  openal_dep = dependency(
-    'openal',
-    fallback: ['openal', 'openal_dep'],
-    default_options: ['utils=false'],
-  )
+  miniaudio_dep = dependency('miniaudio', fallback: ['miniaudio', 'ma_dep'])
 
-  platform_dep += [glfw_dep, openal_dep]
+  platform_dep += [glfw_dep, miniaudio_dep]
   platform_src += files(
     'src/desktop/glad.c',
     'src/desktop/glfw_input.c',
     'src/desktop/glfw_window.c',
+    'src/desktop/sys_sound.c',
     'src/linux/sys_linux.c',
-    'src/linux/sys_sound.c',
   )
   platform_inc += include_directories('third-party/glad/include')
 
@@ -122,19 +117,15 @@ elif opt_platform == 'macos'
   endif
 
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
-  openal_dep = dependency(
-    'openal-soft',
-    fallback: ['openal-soft', 'openal_dep'],
-    default_options: ['utils=false'],
-  )
+  miniaudio_dep = dependency('miniaudio', fallback: ['miniaudio', 'ma_dep'])
 
-  platform_dep += [glfw_dep, openal_dep]
+  platform_dep += [glfw_dep, miniaudio_dep]
   platform_src += files(
     'src/desktop/glad.c',
     'src/desktop/glfw_input.c',
     'src/desktop/glfw_window.c',
+    'src/desktop/sys_sound.c',
     'src/macos/sys_macos.c',
-    'src/macos/sys_sound.c',
   )
   platform_inc += include_directories('third-party/glad/include')
 
@@ -157,18 +148,14 @@ elif opt_platform == 'windows'
   endif
 
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
-  openal_dep = dependency(
-    'openal-soft',
-    fallback: ['openal-soft', 'openal_dep'],
-    default_options: ['utils=false'],
-  )
+  miniaudio_dep = dependency('miniaudio', fallback: ['miniaudio', 'ma_dep'])
 
-  platform_dep += [glfw_dep, openal_dep]
+  platform_dep += [glfw_dep, miniaudio_dep]
   platform_src += files(
     'src/desktop/glad.c',
     'src/desktop/glfw_input.c',
     'src/desktop/glfw_window.c',
-    'src/windows/sys_sound.c',
+    'src/desktop/sys_sound.c',
     'src/windows/sys_windows.c',
   )
   platform_inc += include_directories('third-party/glad/include')
