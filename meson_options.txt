@@ -1,0 +1,2 @@
+option('platform', type : 'string', value : 'macos',
+       description : 'Target platform to build for')
