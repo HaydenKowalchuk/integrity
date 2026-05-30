@@ -6,8 +6,8 @@
 
 WINDOW_TITLE("Audio | Integrity", WINDOWED);
 
-static unsigned int sfx;
-static int sound_loaded;
+static unsigned int sfx = 0;
+static int sound_loaded = 0;
 
 static void Audio_Init(void);
 static void Audio_Exit(void);
@@ -19,7 +19,13 @@ STARTUP_SCENE(&Audio_Init, &Audio_Exit, &Audio_Render2D, &Audio_Render3D, &Audio
 
 static void Audio_Init(void) {
   sfx = 0;
-  sound_loaded = create_sound(&sfx, FS_ResolvePathTemp("assets/click.wav"));
+  if(FS_FileExists("assets/click.wav")){
+    sound_loaded = create_sound(&sfx, FS_ResolvePathTemp("assets/click.wav"));
+  }
+  if(!sound_loaded && FS_FileExists("click.wav")){
+    sound_loaded = create_sound(&sfx, FS_ResolvePathTemp("click.wav"));
+  }
+
   if (sound_loaded < 0) {
     fprintf(stderr, "audio: could not load assets/click.wav\n");
   }

@@ -218,6 +218,7 @@ elif opt_platform == 'psp'
 
   arg_linker += [
     '-Wl,--end-group',
+    '-latomic',
     '-lpspgu',
     '-lpspgum',
     '-lpspdebug',
@@ -238,21 +239,26 @@ elif opt_platform == 'psp'
     '-Wl,-q,-T/opt/toolchains/pspdev/psp/sdk/lib/linkfile.prx', '/opt/toolchains/pspdev/psp/sdk/lib/prxexports.o',
   ]
 
-  #openal_dep = dependency('openal', fallback : ['openal', 'openal_dep'])
   pspgl_dep = dependency('pspgl', fallback: ['pspgl', 'pspgl_dep'])
+  miniaudio_dep = dependency('miniaudio', fallback: ['miniaudio', 'ma_dep'], default_options: [
+    'b_staticpic=false',
+    'backends=',
+    'runtime_linking=disabled',
+    'device_io=disabled',
+    'engine=false',
+    'generation=false',
+    'libvorbis=disabled',
+    'libopus=disabled',
+    'examples=disabled',
+    'tests=disabled',
+    'tools=disabled',
+  ])
 
-  #openal_lib_path = cc.find_library(
-  #    'openal-soft',
-  #    dirs: [meson.source_root() / 'deps' / 'openal-psp' / 'lib'],
-  #    static: true,
-  #)
-  #openal_dep = declare_dependency(
-  #    dependencies: openal_lib_path,
-  #    include_directories: include_directories('deps/openal-psp/include'),
-  #)
-
-  platform_dep += [pspgl_dep]
-  platform_src += files('src/psp/sys_psp.c', 'src/psp/sys_sound.c')
+  platform_dep += [pspgl_dep, miniaudio_dep]
+  platform_src += files(
+    'src/psp/sys_psp.c',
+    'src/psp/sys_sound.c',
+  )
 
 else
   error('Unsupported platform: ' + opt_platform)
