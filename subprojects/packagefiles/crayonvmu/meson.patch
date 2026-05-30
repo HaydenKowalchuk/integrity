@@ -1,0 +1,32 @@
+diff -crNb a/meson.build b/meson.build
+*** a/meson.build	1969-12-31 19:00:00.000000000 -0500
+--- b/meson.build	2024-12-22 10:37:07.254045180 -0500
+***************
+*** 0 ****
+--- 1,26 ----
++ project('crayonvmu', 'c',
++   version : '0.1',
++   default_options : ['warning_level=0','default_library=static', 'c_std=gnu11', 'buildtype=release'])
++ 
++ # Dependencies
++ cc = meson.get_compiler('c')
++ m_dep = cc.find_library('m', required : false)
++ 
++ # Compiler options for Dreamcast
++ arg_c = ['-O3', '-ffast-math', '-fomit-frame-pointer', '-finline-functions', '-mfsrra', '-mfsca', '-ml', '-m4-single-only']
++ 
++ # Include directories
++ inc_base = include_directories('include')
++ inc_kos = include_directories('/opt/toolchains/dc/kos/include', '/opt/toolchains/dc/kos/kernel/arch/dreamcast/include', '/opt/toolchains/dc/kos/addons/include')
++ 
++ # Source files
++ src = ['src/savefile.c', 'src/setup.c']
++ inc = [inc_base, inc_kos]
++ 
++ # crayonvmu library and dep
++ libcrayonvmu = static_library('crayonvmu', sources: src, include_directories : inc,
++   c_args : arg_c, dependencies : [m_dep],
++   install : true)
++ 
++ libcrayonvmu_dep = declare_dependency(include_directories : inc, link_with : libcrayonvmu)
++

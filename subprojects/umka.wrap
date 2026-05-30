@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/vtereshkov/umka-lang.git
+revision = HEAD
+depth = 1
+
+directory = umka
+diff_files = umka/meson.patch

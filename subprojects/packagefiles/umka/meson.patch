@@ -1,0 +1,78 @@
+diff -crNb a/meson.build b/meson.build
+*** a/meson.build	1969-12-31 19:00:00.000000000 -0500
+--- b/meson.build	2024-12-22 10:37:07.254045180 -0500
+***************
+*** 0 ****
+--- 1,72 ----
++ project(
++     'umka',
++     'c',
++     version: '1.0',
++     default_options: ['c_std=gnu17', 'b_staticpic=false', 'default_library=static'],
++     meson_version: '>=0.65.0',
++ )
++ 
++ # Compiler arguments
++ arg_base = [
++     '-Wall',
++     '-Wno-format-security',
++     '-fno-strict-aliasing',
++ ]
++ # '-malign-double',
++ arg_code = []
++ arg_linker = []
++ 
++ # Dependencies
++ cc = meson.get_compiler('c')
++ m_dep = cc.find_library('m', required: false)
++ 
++ # Options
++ #opt_platform = get_option('platform')
++ #opt_buildtype = get_option('buildtype')
++ 
++ inc_base = []
++ inc_base += include_directories('src')
++ 
++ src_files = [
++     'src/umka_api.c',
++     'src/umka_common.c',
++     'src/umka_compiler.c',
++     'src/umka_const.c',
++     'src/umka_decl.c',
++     'src/umka_expr.c',
++     'src/umka_gen.c',
++     'src/umka_ident.c',
++     'src/umka_lexer.c',
++     'src/umka_runtime.c',
++     'src/umka_stmt.c',
++     'src/umka_types.c',
++     'src/umka_vm.c',
++ ]
++ 
++ platform_inc = []
++ platform_dep = []
++ 
++ # Combine all sources and includes
++ inc = [inc_base, platform_inc]
++ dep = [m_dep, platform_dep]
++ arg_c = [arg_base, arg_code]
++ 
++ # Build the library
++ umka_lib = static_library(
++     'umka',
++     c_args: arg_c,
++     link_args: arg_linker,
++     sources: src_files,
++     include_directories: inc,
++     dependencies: dep,
++     install: true,
++ )
++ 
++ umka_dep = declare_dependency(
++     include_directories: include_directories('src'),
++     compile_args: arg_c,
++     link_args: arg_linker,
++     dependencies: [],
++     link_with: umka_lib,
++ )
++ 

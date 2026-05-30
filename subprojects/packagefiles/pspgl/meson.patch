@@ -1,0 +1,250 @@
+diff -crNb a/meson.build b/meson.build
+*** a/meson.build	1969-12-31 19:00:00.000000000 -0500
+--- b/meson.build	2024-12-22 10:37:07.254045180 -0500
+***************
+*** 0 ****
+--- 1,213 ----
++ project('pspgl', 'c',
++   version : '1.0',
++   default_options : ['warning_level=3', 'c_std=gnu99'])
++ 
++ # PSP-specific configuration
++ cpp = meson.get_compiler('c')
++ psp_prefix = run_command('psp-config', '--psp-prefix', check: true).stdout().strip()
++ psp_sdk_path = run_command('psp-config', '--pspsdk-path', check: true).stdout().strip()
++ 
++ # Compiler and flags for PSP
++ add_project_arguments('-Wmissing-prototypes', '-G0', '-fsingle-precision-constant', language: 'c')
++ add_project_arguments('-I.', '-I' + psp_prefix + '/include', '-I' + psp_sdk_path + '/include', language: 'c')
++ 
++ # Link flags
++ add_project_link_arguments('-G0', '-L' + psp_prefix + '/lib', language: 'c')
++ 
++ # Source files for libGL
++ api_sources = [
++   'eglBindTexImage.c',
++   'eglChooseConfig.c',
++   'eglCreateContext.c',
++   'eglCreatePbufferSurface.c',
++   'eglCreateWindowSurface.c',
++   'eglDestroyContext.c',
++   'eglDestroySurface.c',
++   'eglGetConfigAttrib.c',
++   'eglGetConfigs.c',
++   'eglGetError.c',
++   'eglGetDisplay.c',
++   'eglInitialize.c',
++   'eglMakeCurrent.c',
++   'eglQueryString.c',
++   'eglSwapBuffers.c',
++   'eglSwapInterval.c',
++   'eglTerminate.c',
++   'eglWaitGL.c',
++   'eglWaitNative.c',
++   'glAlphaFunc.c',
++   'glArrayElement.c',
++   'glBegin.c',
++   'glDrawBezierArrays.c',
++   'glDrawBezierElements.c',
++   'glDrawSplineArrays.c',
++   'glDrawSplineElements.c',
++   'glBindBufferARB.c',
++   'glBindTexture.c',
++   'glBlendEquation.c',
++   'glBlendFunc.c',
++   'glBufferDataARB.c',
++   'glBufferSubDataARB.c',
++   'glClear.c',
++   'glClearColor.c',
++   'glClearDepth.c',
++   'glClearDepthf.c',
++   'glClearStencil.c',
++   'glColor.c',
++   'glColorMask.c',
++   'glColorPointer.c',
++   'glColorTable.c',
++   'glCompressedTexImage2D.c',
++   'glCopyTexImage2D.c',
++   'glCullFace.c',
++   'glDeleteBuffersARB.c',
++   'glDeleteTextures.c',
++   'glDepthFunc.c',
++   'glDepthMask.c',
++   'glDepthRange.c',
++   'glDepthRangef.c',
++   'glDisplayList.c',
++   'glDrawArrays.c',
++   'glDrawBuffer.c',
++   'glDrawElements.c',
++   'glEnable.c',
++   'glEnableClientState.c',
++   'glEnd.c',
++   'glFinish.c',
++   'glFlush.c',
++   'glFog.c',
++   'glFrontFace.c',
++   'glFrustumf.c',
++   'glFrustum.c',
++   'glGenBuffersARB.c',
++   'glGenTextures.c',
++   'glGetBufferSubDataARB.c',
++   'glGetFloatv.c',
++   'glGetIntegerv.c',
++   'glGetError.c',
++   'glGetString.c',
++   'glInterleavedArrays.c',
++   'glIsTexture.c',
++   'glLight.c',
++   'glLightModel.c',
++   'glLineWidth.c',
++   'glLoadIdentity.c',
++   'glLoadMatrixf.c',
++   'glLockArraysEXT.c',
++   'glLogicOp.c',
++   'glMapBufferARB.c',
++   'glMaterial.c',
++   'glMatrixMode.c',
++   'glMultMatrixf.c',
++   'glNormal.c',
++   'glNormald.c',
++   'glNormalPointer.c',
++   'glOrtho.c',
++   'glOrthof.c',
++   'glPixelStore.c',
++   'glPushAttrib.c',
++   'glPushClientAttrib.c',
++   'glPopMatrix.c',
++   'glPushMatrix.c',
++   'glPolygonMode.c',
++   'glPolygonOffset.c',
++   'glPrioritizeTextures.c',
++   'glReadBuffer.c',
++   'glReadPixels.c',
++   'glRotatef.c',
++   'glScalef.c',
++   'glScaled.c',
++   'glScissor.c',
++   'glShadeModel.c',
++   'glStencilFunc.c',
++   'glStencilMask.c',
++   'glStencilOp.c',
++   'glTexCoord.c',
++   'glTexCoordPointer.c',
++   'glTexEnv.c',
++   'glTexGen.c',
++   'glTexImage2D.c',
++   'glTexSubImage2D.c',
++   'glTexParameter.c',
++   'glTranslatef.c',
++   'glUnmapBufferARB.c',
++   'glVertex.c',
++   'glVertexd.c',
++   'glVertexi.c',
++   'glVertexPointer.c',
++   'glViewport.c',
++   'glWeightPointerPSP.c',
++   'pspgl_buffers.c',
++   'pspgl_context.c',
++   'pspgl_copy_pixels.c',
++   'pspgl_dlist.c',
++   'pspgl_ge_init.c',
++   'pspgl_hash.c',
++   'pspgl_matrix.c',
++   'pspgl_misc.c',
++   'pspgl_stats.c',
++   'pspgl_texobj.c',
++   'pspgl_varray.c',
++   'pspgl_varray_draw.c',
++   'pspgl_varray_draw_elts.c',
++   'pspgl_varray_draw_range_elts.c',
++   'pspgl_vidmem.c'
++ ]
++ 
++ # libGL sources include the pregenerated header
++ gl_sources = api_sources + ['eglGetProcAddress.c']
++ 
++ # libGLU sources
++ glu_sources = [
++   'gluBuildMipmaps.c',
++   'gluLookAt.c',
++   'gluLookAtf.c',
++   'gluPerspective.c',
++   'gluPerspectivef.c',
++   'gluScaleImage.c',
++   'pspglu.c'
++ ]
++ 
++ # libglut sources
++ glut_sources = [
++   'glut.c',
++   'glut_shapes.c'
++ ]
++ 
++ # Build libraries
++ libgl = static_library('GL', gl_sources,
++   include_directories : include_directories('.'),
++   c_args : ['-I.', '-I' + psp_prefix + '/include', '-I' + psp_sdk_path + '/include'],
++   install : true,
++   install_dir : psp_prefix + '/lib'
++ )
++ 
++ libglu = static_library('GLU', glu_sources,
++   include_directories : include_directories('.'),
++   c_args : ['-I.', '-I' + psp_prefix + '/include', '-I' + psp_sdk_path + '/include'],
++   install : true,
++   install_dir : psp_prefix + '/lib'
++ )
++ 
++ libglut = static_library('glut', glut_sources,
++   include_directories : include_directories('.'),
++   c_args : ['-I.', '-I' + psp_prefix + '/include', '-I' + psp_sdk_path + '/include'],
++   install : true,
++   install_dir : psp_prefix + '/lib'
++ )
++ 
++ # Install headers
++ install_headers(
++   'GL/gl.h',
++   'GL/glext.h',
++   'GL/glu.h',
++   'GL/glut.h',
++   subdir : 'GL'
++ )
++ 
++ # Declare dependency for other projects
++ pspgl_dep = declare_dependency(
++   link_with : [libgl, libglu, libglut],
++   include_directories : include_directories('.')
++ )
++ 
+
+diff -crNb a/pspgl_proctable.h b/pspgl_proctable.h
+*** a/pspgl_proctable.h	1969-12-31 19:00:00.000000000 -0500
+--- b/pspgl_proctable.h	2024-12-22 10:37:07.254045180 -0500
+***************
+*** 0 ****
+--- 1,24 ----
++	{ "glBindBufferARB", (void (*)())glBindBufferARB },
++	{ "glBufferDataARB", (void (*)())glBufferDataARB },
++	{ "glBufferSubDataARB", (void (*)())glBufferSubDataARB },
++	{ "glColorTableEXT", (void (*)())glColorTableEXT },
++	{ "glDeleteBuffersARB", (void (*)())glDeleteBuffersARB },
++	{ "glDisableStatsPSP", (void (*)())glDisableStatsPSP },
++	{ "glDrawBezierArraysPSP", (void (*)())glDrawBezierArraysPSP },
++	{ "glDrawBezierElementsPSP", (void (*)())glDrawBezierElementsPSP },
++	{ "glDrawBezierRangeElementsPSP", (void (*)())glDrawBezierRangeElementsPSP },
++	{ "glDrawSplineArraysPSP", (void (*)())glDrawSplineArraysPSP },
++	{ "glDrawSplineElementsPSP", (void (*)())glDrawSplineElementsPSP },
++	{ "glDrawSplineRangeElementsPSP", (void (*)())glDrawSplineRangeElementsPSP },
++	{ "glEnableStatsPSP", (void (*)())glEnableStatsPSP },
++	{ "glGenBuffersARB", (void (*)())glGenBuffersARB },
++	{ "glGetBufferSubDataARB", (void (*)())glGetBufferSubDataARB },
++	{ "glGetStatisticsuivPSP", (void (*)())glGetStatisticsuivPSP },
++	{ "glLockArraysEXT", (void (*)())glLockArraysEXT },
++	{ "glMapBufferARB", (void (*)())glMapBufferARB },
++	{ "glPatchSubdivisionPSP", (void (*)())glPatchSubdivisionPSP },
++	{ "glResetStatsPSP", (void (*)())glResetStatsPSP },
++	{ "glUnlockArraysEXT", (void (*)())glUnlockArraysEXT },
++	{ "glUnmapBufferARB", (void (*)())glUnmapBufferARB },
++	{ "glWeightPointerPSP", (void (*)())glWeightPointerPSP },
++
