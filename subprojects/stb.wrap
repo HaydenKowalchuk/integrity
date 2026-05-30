@@ -1,0 +1,8 @@
+[wrap-file]
+directory = stb-013ac3beddff3dbffafd5177e7972067cd2b5083
+source_url = https://github.com/nothings/stb/archive/013ac3beddff3dbffafd5177e7972067cd2b5083.tar.gz
+source_filename = stb-013ac3beddff3dbffafd5177e7972067cd2b5083.tar.gz
+source_hash = b01aa93e1a968aed55f43e072c98ee401d2f20e897aabdb1a166c7166886ed11
+
+[provide]
+stb = stb_dep
