@@ -21,7 +21,7 @@ arg_linker = []
 
 # Dependencies
 cc = meson.get_compiler('c')
-m_dep = cc.find_library('m', required: false)
+m_dep = cc.find_library('m', required: true)
 umka_dep = dependency('umka-lang', fallback: ['umka', 'umka_dep'])
 stb_dep = dependency('stb', fallback: ['stb', 'stb_dep'])
 cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
