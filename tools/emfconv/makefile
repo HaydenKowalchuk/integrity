@@ -1,11 +1,13 @@
-TARGET_EXEC ?= emfconv
+TARGET_EXEC ? = emfconv
 
-include ../../makefiles/config.mak
+                    include../
+                    ../ makefiles / config.mak
 
-check:
-	@echo $(SRCS)
+                                        check
+            : @echo $(SRCS)
 
-.PHONY: test
+                      .PHONY : test
 
-test: debug
-	cmd.exe /k "cd release\\windows && gdb .\\$(TARGET_EXEC)_d.exe  & exit"
+                                   test : debug
+                                              cmd.exe /
+                  k "cd release\\windows && gdb .\\$(TARGET_EXEC)_d.exe  & exit"

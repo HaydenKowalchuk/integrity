@@ -220,43 +220,43 @@
 //
 
 //                MODE DEFINITION                  VALUE   MEASURMENT TYPE & NOTES
-#define PMCR_INIT_NO_MODE                           0x00 // None; Just here to be complete
-#define PMCR_OPERAND_READ_ACCESS_MODE               0x01 // Quantity; With cache
-#define PMCR_OPERAND_WRITE_ACCESS_MODE              0x02 // Quantity; With cache
-#define PMCR_UTLB_MISS_MODE                         0x03 // Quantity
-#define PMCR_OPERAND_CACHE_READ_MISS_MODE           0x04 // Quantity
-#define PMCR_OPERAND_CACHE_WRITE_MISS_MODE          0x05 // Quantity
-#define PMCR_INSTRUCTION_FETCH_MODE                 0x06 // Quantity; With cache
-#define PMCR_INSTRUCTION_TLB_MISS_MODE              0x07 // Quantity
-#define PMCR_INSTRUCTION_CACHE_MISS_MODE            0x08 // Quantity
-#define PMCR_ALL_OPERAND_ACCESS_MODE                0x09 // Quantity
-#define PMCR_ALL_INSTRUCTION_FETCH_MODE             0x0a // Quantity
-#define PMCR_ON_CHIP_RAM_OPERAND_ACCESS_MODE        0x0b // Quantity
+#define PMCR_INIT_NO_MODE 0x00                     // None; Just here to be complete
+#define PMCR_OPERAND_READ_ACCESS_MODE 0x01         // Quantity; With cache
+#define PMCR_OPERAND_WRITE_ACCESS_MODE 0x02        // Quantity; With cache
+#define PMCR_UTLB_MISS_MODE 0x03                   // Quantity
+#define PMCR_OPERAND_CACHE_READ_MISS_MODE 0x04     // Quantity
+#define PMCR_OPERAND_CACHE_WRITE_MISS_MODE 0x05    // Quantity
+#define PMCR_INSTRUCTION_FETCH_MODE 0x06           // Quantity; With cache
+#define PMCR_INSTRUCTION_TLB_MISS_MODE 0x07        // Quantity
+#define PMCR_INSTRUCTION_CACHE_MISS_MODE 0x08      // Quantity
+#define PMCR_ALL_OPERAND_ACCESS_MODE 0x09          // Quantity
+#define PMCR_ALL_INSTRUCTION_FETCH_MODE 0x0a       // Quantity
+#define PMCR_ON_CHIP_RAM_OPERAND_ACCESS_MODE 0x0b  // Quantity
 // No 0x0c
-#define PMCR_ON_CHIP_IO_ACCESS_MODE                 0x0d // Quantity
-#define PMCR_OPERAND_ACCESS_MODE                    0x0e // Quantity; With cache, counts both reads and writes
-#define PMCR_OPERAND_CACHE_MISS_MODE                0x0f // Quantity
-#define PMCR_BRANCH_ISSUED_MODE                     0x10 // Quantity; Not the same as branch taken!
-#define PMCR_BRANCH_TAKEN_MODE                      0x11 // Quantity
-#define PMCR_SUBROUTINE_ISSUED_MODE                 0x12 // Quantity; Issued a BSR, BSRF, JSR, JSR/N
-#define PMCR_INSTRUCTION_ISSUED_MODE                0x13 // Quantity
-#define PMCR_PARALLEL_INSTRUCTION_ISSUED_MODE       0x14 // Quantity
-#define PMCR_FPU_INSTRUCTION_ISSUED_MODE            0x15 // Quantity
-#define PMCR_INTERRUPT_COUNTER_MODE                 0x16 // Quantity
-#define PMCR_NMI_COUNTER_MODE                       0x17 // Quantity
-#define PMCR_TRAPA_INSTRUCTION_COUNTER_MODE         0x18 // Quantity
-#define PMCR_UBC_A_MATCH_MODE                       0x19 // Quantity
-#define PMCR_UBC_B_MATCH_MODE                       0x1a // Quantity
+#define PMCR_ON_CHIP_IO_ACCESS_MODE 0x0d            // Quantity
+#define PMCR_OPERAND_ACCESS_MODE 0x0e               // Quantity; With cache, counts both reads and writes
+#define PMCR_OPERAND_CACHE_MISS_MODE 0x0f           // Quantity
+#define PMCR_BRANCH_ISSUED_MODE 0x10                // Quantity; Not the same as branch taken!
+#define PMCR_BRANCH_TAKEN_MODE 0x11                 // Quantity
+#define PMCR_SUBROUTINE_ISSUED_MODE 0x12            // Quantity; Issued a BSR, BSRF, JSR, JSR/N
+#define PMCR_INSTRUCTION_ISSUED_MODE 0x13           // Quantity
+#define PMCR_PARALLEL_INSTRUCTION_ISSUED_MODE 0x14  // Quantity
+#define PMCR_FPU_INSTRUCTION_ISSUED_MODE 0x15       // Quantity
+#define PMCR_INTERRUPT_COUNTER_MODE 0x16            // Quantity
+#define PMCR_NMI_COUNTER_MODE 0x17                  // Quantity
+#define PMCR_TRAPA_INSTRUCTION_COUNTER_MODE 0x18    // Quantity
+#define PMCR_UBC_A_MATCH_MODE 0x19                  // Quantity
+#define PMCR_UBC_B_MATCH_MODE 0x1a                  // Quantity
 // No 0x1b-0x20
-#define PMCR_INSTRUCTION_CACHE_FILL_MODE            0x21 // Cycles
-#define PMCR_OPERAND_CACHE_FILL_MODE                0x22 // Cycles
-#define PMCR_ELAPSED_TIME_MODE                      0x23 // Cycles; For 200MHz CPU: 5ns per count in 1 cycle = 1 count mode, or around 417.715ps per count (increments by 12) in CPU/bus ratio mode
-#define PMCR_PIPELINE_FREEZE_BY_ICACHE_MISS_MODE    0x24 // Cycles
-#define PMCR_PIPELINE_FREEZE_BY_DCACHE_MISS_MODE    0x25 // Cycles
+#define PMCR_INSTRUCTION_CACHE_FILL_MODE 0x21          // Cycles
+#define PMCR_OPERAND_CACHE_FILL_MODE 0x22              // Cycles
+#define PMCR_ELAPSED_TIME_MODE 0x23                    // Cycles; For 200MHz CPU: 5ns per count in 1 cycle = 1 count mode, or around 417.715ps per count (increments by 12) in CPU/bus ratio mode
+#define PMCR_PIPELINE_FREEZE_BY_ICACHE_MISS_MODE 0x24  // Cycles
+#define PMCR_PIPELINE_FREEZE_BY_DCACHE_MISS_MODE 0x25  // Cycles
 // No 0x26
-#define PMCR_PIPELINE_FREEZE_BY_BRANCH_MODE         0x27 // Cycles
-#define PMCR_PIPELINE_FREEZE_BY_CPU_REGISTER_MODE   0x28 // Cycles
-#define PMCR_PIPELINE_FREEZE_BY_FPU_MODE            0x29 // Cycles
+#define PMCR_PIPELINE_FREEZE_BY_BRANCH_MODE 0x27        // Cycles
+#define PMCR_PIPELINE_FREEZE_BY_CPU_REGISTER_MODE 0x28  // Cycles
+#define PMCR_PIPELINE_FREEZE_BY_FPU_MODE 0x29           // Cycles
 
 //
 // --- Performance Counter Support Definitions ---
@@ -284,7 +284,7 @@
 #define PMCR_SH4_CPU_FREQUENCY 199500000
 #define PMCR_CPU_CYCLES_MAX_SECONDS 1410902
 #define PMCR_SH4_BUS_FREQUENCY 99750000
-#define PMCR_SH4_BUS_FREQUENCY_SCALED 2394000000 // 99.75MHz x 24
+#define PMCR_SH4_BUS_FREQUENCY_SCALED 2394000000  // 99.75MHz x 24
 #define PMCR_BUS_RATIO_MAX_SECONDS 117575
 
 //
@@ -306,7 +306,7 @@ void PMCR_Restart(int which, unsigned short mode, unsigned char count_type);
 
 // Read a counter
 // out_array is specifically uint32 out_array[2] -- 48-bit value needs a 64-bit storage unit
-void PMCR_Read(int which, volatile unsigned int *out_array);
+void PMCR_Read(int which, volatile unsigned int* out_array);
 
 // Stop counter(s) (without clearing)
 void PMCR_Stop(int which);

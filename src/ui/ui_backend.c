@@ -6,7 +6,7 @@
 
 #include "char_basic.h"
 
-tx_image *char_texture;
+tx_image* char_texture;
 
 float text_color[3];
 uint32_t text_color_packed;
@@ -71,7 +71,7 @@ void UI_ResetVirtualResolution(void) {
   rect_pos_fullscreen.h = 480;
 }
 
-dimen_RECT UI_ScaleToVirtual(const dimen_RECT *const input, const dimen_FRECT *const screen) {
+dimen_RECT UI_ScaleToVirtual(const dimen_RECT* const input, const dimen_FRECT* const screen) {
   dimen_RECT out = {0};
   out.x = (input->x / screen->w) * 640;
   out.y = (input->y / screen->h) * 480;
@@ -81,7 +81,7 @@ dimen_RECT UI_ScaleToVirtual(const dimen_RECT *const input, const dimen_FRECT *c
   return out;
 }
 
-dimen_RECT UI_RECTFToRECT(dimen_FRECT *input) {
+dimen_RECT UI_RECTFToRECT(dimen_FRECT* input) {
   dimen_RECT out = {input->x, input->y, input->w, input->h};
   return out;
 }
@@ -122,7 +122,7 @@ void UI_DrawCharacter(int x, int y, unsigned char num) {
   DrawQuad(&pos, &tex);
 }
 
-void UI_DrawString(int x, int y, const char *str) {
+void UI_DrawString(int x, int y, const char* str) {
   GL_Bind(char_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -152,7 +152,7 @@ void UI_DrawString(int x, int y, const char *str) {
   // R_EndBatchingSurfacesQuads();
 }
 
-void UI_DrawString_Linebreak(int x, int y, const char *str, int width) {
+void UI_DrawString_Linebreak(int x, int y, const char* str, int width) {
   GL_Bind(char_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -171,7 +171,7 @@ void UI_DrawString_Linebreak(int x, int y, const char *str, int width) {
 
     if (num == 32) {
       line_width += text_size;
-      const char *current_word = str + 1;
+      const char* current_word = str + 1;
       int word_length = 0;
       while ((*current_word) && (*current_word != 32)) {
         word_length += text_size;
@@ -204,7 +204,7 @@ void UI_DrawString_Linebreak(int x, int y, const char *str, int width) {
   // R_EndBatchingSurfacesQuads();
 }
 
-void UI_DrawStringCentered_Rot(int x, int y, const char *str, float rad) {
+void UI_DrawStringCentered_Rot(int x, int y, const char* str, float rad) {
   GL_Bind(char_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -231,7 +231,7 @@ void UI_DrawStringCentered_Rot(int x, int y, const char *str, float rad) {
   // R_EndBatchingSurfacesQuads();
 }
 
-void UI_DrawString_Rot(int x, int y, const char *str, float rad) {
+void UI_DrawString_Rot(int x, int y, const char* str, float rad) {
   GL_Bind(char_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -258,7 +258,7 @@ void UI_DrawString_Rot(int x, int y, const char *str, float rad) {
   // R_EndBatchingSurfacesQuads();
 }
 
-void UI_DrawStringCentered(int x, int y, const char *str) {
+void UI_DrawStringCentered(int x, int y, const char* str) {
   UI_DrawString(x - (strlen(str) * text_size / 2), y - (text_size / 2), str);
 }
 void UI_TextAlpha(float a) {
@@ -278,24 +278,24 @@ void UI_TextColorEx(float r, float g, float b, float a) {
   text_color_packed = PACK_COLOR(255 * text_color[0], 255 * text_color[1], 255 * text_color[2], 255 * text_alpha);
 }
 
-static inline void Draw_AlphaPic(int x, int y, tx_image *pic) {
+static inline void Draw_AlphaPic(int x, int y, tx_image* pic) {
   UI_DrawPic(x, y, pic);
 }
 
-void UI_DrawPic(int x, int y, tx_image *pic) {
+void UI_DrawPic(int x, int y, tx_image* pic) {
   glColor4f(1, 1, 1, 1);
   GL_Bind(pic);
   dimen_RECT pos = {x, y, pic->width, pic->height};
   DrawQuad(&pos, &rect_tex_0TO1);
 }
 
-void UI_DrawPicDimensions(const dimen_RECT *const rect, tx_image *pic) {
+void UI_DrawPicDimensions(const dimen_RECT* const rect, tx_image* pic) {
   glColor4f(1, 1, 1, 1);
   GL_Bind(pic);
   DrawQuad(rect, &rect_tex_0TO1);
 }
 
-void UI_DrawTransSprite(const dimen_RECT *const rect, float alpha, sprite *spr) {
+void UI_DrawTransSprite(const dimen_RECT* const rect, float alpha, sprite* spr) {
   float old_alpha = text_alpha;
   text_alpha = alpha;
   GL_Bind(spr->parent);
@@ -304,14 +304,14 @@ void UI_DrawTransSprite(const dimen_RECT *const rect, float alpha, sprite *spr) 
   text_alpha = old_alpha;
 }
 
-void UI_DrawSprite(const dimen_RECT *const rect, sprite *spr) {
+void UI_DrawSprite(const dimen_RECT* const rect, sprite* spr) {
   UI_TextColorEx(1, 1, 1, 1);
   GL_Bind(spr->parent);
   dimen_FRECT tex = {spr->u, spr->v, spr->width, spr->height};
   DrawQuad(rect, &tex);
 }
 
-void UI_DrawTransSprite_Rot(const dimen_RECT *const rect, float alpha, sprite *spr, float rad) {
+void UI_DrawTransSprite_Rot(const dimen_RECT* const rect, float alpha, sprite* spr, float rad) {
   float old_alpha = text_alpha;
   text_alpha = alpha;
   GL_Bind(spr->parent);
@@ -321,7 +321,7 @@ void UI_DrawTransSprite_Rot(const dimen_RECT *const rect, float alpha, sprite *s
   text_alpha = old_alpha;
 }
 
-void UI_DrawSprite_Rot(const dimen_RECT *const rect, sprite *spr, float rad) {
+void UI_DrawSprite_Rot(const dimen_RECT* const rect, sprite* spr, float rad) {
   UI_TextColorEx(1, 1, 1, 1);
   GL_Bind(spr->parent);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -329,11 +329,11 @@ void UI_DrawSprite_Rot(const dimen_RECT *const rect, sprite *spr, float rad) {
   DrawQuad_RotEx(rect, &tex, rad);
 }
 
-void UI_DrawTransPic(int x, int y, tx_image *pic) {
+void UI_DrawTransPic(int x, int y, tx_image* pic) {
   Draw_AlphaPic(x, y, pic);
 }
 
-void UI_DrawFill(const dimen_RECT *rect, int r, int g, int b) {
+void UI_DrawFill(const dimen_RECT* rect, int r, int g, int b) {
   float _r = text_color[0];
   float _g = text_color[1];
   float _b = text_color[2];
@@ -342,7 +342,7 @@ void UI_DrawFill(const dimen_RECT *rect, int r, int g, int b) {
   UI_TextColor(_r, _g, _b);
 }
 
-void UI_DrawTexturedQuad(const dimen_RECT *const rect, tx_image *pic) {
+void UI_DrawTexturedQuad(const dimen_RECT* const rect, tx_image* pic) {
   GL_Bind(pic);
   DrawQuad(rect, &rect_tex_0TO1);
 }
@@ -409,8 +409,8 @@ void UI_Set2D(void) {
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
-void DrawQuad_NoTex(const dimen_RECT *_rect_pos) {
-  const dimen_RECT *rect_pos = _rect_pos;
+void DrawQuad_NoTex(const dimen_RECT* _rect_pos) {
+  const dimen_RECT* rect_pos = _rect_pos;
   dimen_RECT temp;
   if (__builtin_expect(ui_scaling, false)) {
     temp = UI_ScaleToVirtual(_rect_pos, &_rect_pos_fullscreen);
@@ -418,7 +418,6 @@ void DrawQuad_NoTex(const dimen_RECT *_rect_pos) {
   }
   float vertex[6 * 3] = {
       rect_pos->x, rect_pos->y + rect_pos->h, 0, rect_pos->x + rect_pos->w, rect_pos->y + rect_pos->h, 0, rect_pos->x + rect_pos->w, rect_pos->y, 0, rect_pos->x + rect_pos->w, rect_pos->y, 0, rect_pos->x, rect_pos->y, 0, rect_pos->x, rect_pos->y + rect_pos->h, 0};
-
 
   unsigned int color_val = PACK_COLOR(255 * text_color[0], 255 * text_color[1], 255 * text_color[2], 255 * text_alpha);
   unsigned int color_arr[6] = {color_val, color_val, color_val, color_val, color_val, color_val};
@@ -430,7 +429,7 @@ void DrawQuad_NoTex(const dimen_RECT *_rect_pos) {
   glEnableClientState(GL_COLOR_ARRAY);
 
   glVertexPointer(3, GL_FLOAT, 0, vertex);
-  glColorPointer(4, GL_UNSIGNED_BYTE, 0, (uint8_t *)&color_arr[0]);
+  glColorPointer(4, GL_UNSIGNED_BYTE, 0, (uint8_t*)&color_arr[0]);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -440,8 +439,8 @@ void DrawQuad_NoTex(const dimen_RECT *_rect_pos) {
   glEnable(GL_TEXTURE_2D);
 }
 
-void DrawQuad(const dimen_RECT *const _rect_pos, const dimen_FRECT *const rect_tex) {
-  const dimen_RECT *rect_pos = _rect_pos;
+void DrawQuad(const dimen_RECT* const _rect_pos, const dimen_FRECT* const rect_tex) {
+  const dimen_RECT* rect_pos = _rect_pos;
   dimen_RECT temp;
   if (__builtin_expect(ui_scaling, false)) {
     temp = UI_ScaleToVirtual(_rect_pos, &_rect_pos_fullscreen);
@@ -467,7 +466,7 @@ void DrawQuad(const dimen_RECT *const _rect_pos, const dimen_FRECT *const rect_t
   glDisableClientState(GL_COLOR_ARRAY);
   glDisable(GL_BLEND);
 }
-void DrawQuad_RotEx(const dimen_RECT *const _rect_pos, const dimen_FRECT *const rect_tex, float rad) {
+void DrawQuad_RotEx(const dimen_RECT* const _rect_pos, const dimen_FRECT* const rect_tex, float rad) {
   float halfWidth = _rect_pos->w / 2;
   float halfHeight = _rect_pos->h / 2;
   float c = COS(rad);
@@ -499,11 +498,11 @@ void DrawQuad_RotEx(const dimen_RECT *const _rect_pos, const dimen_FRECT *const 
   glDisable(GL_BLEND);
 }
 
-void DrawQuad_Rot(const dimen_RECT *const rect_pos, float rad) {
+void DrawQuad_Rot(const dimen_RECT* const rect_pos, float rad) {
   DrawQuad_RotEx(rect_pos, &rect_tex_0TO1, rad);
 }
 
-void DrawQuad_NoTex_Rot(const dimen_RECT *const rect_pos, float rad) {
+void DrawQuad_NoTex_Rot(const dimen_RECT* const rect_pos, float rad) {
   glDisable(GL_TEXTURE_2D);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   DrawQuad_RotEx(rect_pos, &rect_tex_0TO1, rad);

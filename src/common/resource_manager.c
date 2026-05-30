@@ -1,6 +1,7 @@
+#include <assert.h>
 #include <integrity/common/resource_manager.h>
 
-void crc32(uint32_t *crc, const uint8_t *data, size_t len) {
+void crc32(uint32_t* crc, const uint8_t* data, size_t len) {
   *crc = ~*crc;
   for (size_t i = 0; i < len; i++) {
     for (int j = 0; j < 8; j++) {
@@ -35,7 +36,7 @@ yeah shifted
 
 */
 
-static void nop_func(void *_) {
+static void nop_func(void* _) {
   (void)_;
 }
 
@@ -90,7 +91,7 @@ int resource_object_count(uint32_t crc) {
   return -1;
 }
 
-void *resource_object_pointer(uint32_t crc) {
+void* resource_object_pointer(uint32_t crc) {
   int iter = 0;
   do {
     if (objects[iter].crc == crc) {
@@ -101,7 +102,7 @@ void *resource_object_pointer(uint32_t crc) {
   return NULL;
 }
 
-void resource_object_add(char identifier, uint32_t crc, void *pointer) {
+void resource_object_add(char identifier, uint32_t crc, void* pointer) {
   int index = resource_object_find(crc);
   if (index == -1) {
     objects[num_objects++] = (resource_object){.type = identifier, .pointer = pointer, .crc = crc, .count = 1};
@@ -199,7 +200,7 @@ void resource_print_objects(void) {
     if (objects[iter].type != '\0') {
       printf("Object[%02d] [type:%c ptr:%p, crc:%08X, count:%d]\n", iter, objects[iter].type, objects[iter].pointer, (unsigned int)objects[iter].crc, objects[iter].count);
       if (objects[iter].type == 'i')
-        printf("\tname: %s\n", ((tx_image *)(objects[iter].pointer))->name);
+        printf("\tname: %s\n", ((tx_image*)(objects[iter].pointer))->name);
     }
   } while (++iter < num_objects);
 }

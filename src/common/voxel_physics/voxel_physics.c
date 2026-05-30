@@ -1,10 +1,8 @@
+#include <assert.h>
+#include <integrity/common/voxel_physics/sweep.h>
 #include <integrity/common/voxel_physics/voxel_physics.h>
 
-#include <assert.h>
-
-#include <integrity/common/voxel_physics/sweep.h>
-
-extern chunk *WLRD_GetChunkAt(int x, int y, int z);
+extern chunk* WLRD_GetChunkAt(int x, int y, int z);
 
 #define MAX_RIGIDBODIES 256
 static rigidbody _bodies[MAX_RIGIDBODIES];
@@ -41,7 +39,7 @@ static vec3 leftover;
 static vec3 sleepVec;
 static vec3 lateralVel;
 
-static void cloneAABB(AABB *target, AABB *source);
+static void cloneAABB(AABB* target, AABB* source);
 
 void PHYS_Create(blockTest testSolid, blockTest testFluid)  //, chunk *_chunk)
 {
@@ -60,7 +58,7 @@ void PHYS_CreateEx(PhysicsOptions opts, blockTest testSolid, blockTest testFluid
   // collision function - TODO: abstract this into a setter?
   physics.testSolid = testSolid;
   physics.testFluid = testFluid;
-  //physics.chunk = _chunk;
+  // physics.chunk = _chunk;
 
   /* SO MANY LOCALS */
   glm_vec3_copy(GLM_VEC3_ZERO, accel);
@@ -81,7 +79,7 @@ void PHYS_CreateEx(PhysicsOptions opts, blockTest testSolid, blockTest testFluid
 
 /*
  *    ADDING AND REMOVING RIGID BODIES
-*/
+ */
 static void activateRigidbody(int index) {
   // Shouldn't already be active!
   assert(index >= _numActive);
@@ -109,18 +107,17 @@ static void deactivateRigidbody(int index) {
   _bodies[index] = temp;
 }
 
-rigidbody *PHYS_AddRigidbody(AABB *_aabb) {
+rigidbody* PHYS_AddRigidbody(AABB* _aabb) {
   return PHYS_AddRigidbodyEx(_aabb, 1.0f, 0.8f, 0.0f, 1.0f, NULL);
 }
 
-rigidbody *PHYS_AddRigidbodyEx(AABB *_aabb, float mass, float friction,
-                               float restitution, float gravMult, void (*onCollide)(rigidbody *, vec3)) {
+rigidbody* PHYS_AddRigidbodyEx(AABB* _aabb, float mass, float friction, float restitution, float gravMult, void (*onCollide)(rigidbody*, vec3)) {
   activateRigidbody(_numActive);
   _bodies[_numActive - 1] = RBDY_Create(_aabb, mass, friction, restitution, gravMult, onCollide, /*autoStep*/ false);
   return &_bodies[_numActive - 1];
 }
 
-void PHYS_RemoveRigidbody(rigidbody *body) {
+void PHYS_RemoveRigidbody(rigidbody* body) {
   for (int i = 0; i < _numActive; i++) {
     if (body->timestamp == _bodies[i].timestamp) {
       deactivateRigidbody(i);
@@ -131,11 +128,11 @@ void PHYS_RemoveRigidbody(rigidbody *body) {
 
 /*
  *    PHYSICS AND COLLISIONS
-*/
+ */
 
 /*
  *    TICK HANDLER
-*/
+ */
 
 void PHYS_Tick(float time) {
   bool noGravity = equals(0.0f, glm_vec3_norm2(physics.gravity));
@@ -145,7 +142,7 @@ void PHYS_Tick(float time) {
   }
 }
 
-void PHYS_iterateBody(PhysicsSystem *_physics, rigidbody *body, float time, bool noGravity) {
+void PHYS_iterateBody(PhysicsSystem* _physics, rigidbody* body, float time, bool noGravity) {
   glm_vec3_copy(body->resting, oldResting);
 
   // treat bodies with <= mass as static
@@ -232,7 +229,7 @@ void PHYS_iterateBody(PhysicsSystem *_physics, rigidbody *body, float time, bool
     // event argument is impulse J = m * dv
     glm_vec3_scale(impacts, body->mass, impacts);
     if (body->onCollide)
-      body->onCollide((void *)body, (float *)(impacts));
+      body->onCollide((void*)body, (float*)(impacts));
 
     // bounce depending on restitution and minBounceImpulse
     if (body->restitution > 0 && mag > _physics->minBounceImpulse) {
@@ -249,16 +246,16 @@ void PHYS_iterateBody(PhysicsSystem *_physics, rigidbody *body, float time, bool
 
 /*
  *    FLUIDS
-*/
+ */
 
-void PHYS_applyFluidForces(PhysicsSystem *_physics __attribute((unused)), rigidbody *body __attribute((unused))) {
+void PHYS_applyFluidForces(PhysicsSystem* _physics __attribute((unused)), rigidbody* body __attribute((unused))) {
 }
 
 /*
  *    FRICTION
-*/
+ */
 
-void PHYS_applyFrictionByAxis(int axis, rigidbody *body, vec3 dvel) {
+void PHYS_applyFrictionByAxis(int axis, rigidbody* body, vec3 dvel) {
   // friction applies only if moving into a touched surface
   float restDir = body->resting[axis];
   float vNormal = dvel[axis];
@@ -293,9 +290,9 @@ void PHYS_applyFrictionByAxis(int axis, rigidbody *body, vec3 dvel) {
 
 /*
  *    COLLISION HANDLER
-*/
-static float *_resting;
-static bool PHYS_basicCollisonCallback(float dist, int axis, int dir, float *vec) {
+ */
+static float* _resting;
+static bool PHYS_basicCollisonCallback(float dist, int axis, int dir, float* vec) {
   _resting[axis] = dir;
   vec[axis] = 0;
   (void)dist;
@@ -303,19 +300,19 @@ static bool PHYS_basicCollisonCallback(float dist, int axis, int dir, float *vec
 }
 
 // sweep aabb along velocity vector and set resting vector
-float PHYS_processCollisions(PhysicsSystem *_physics, AABB *box, float *velocity, float *resting) {
+float PHYS_processCollisions(PhysicsSystem* _physics, AABB* box, float* velocity, float* resting) {
   glm_vec3_copy(GLM_VEC3_ZERO, resting);
 
   _resting = resting;
-  chunk *current_chunk = WLRD_GetChunkAt((int)box->base[0], (int)box->base[1], (int)box->base[2]);
+  chunk* current_chunk = WLRD_GetChunkAt((int)box->base[0], (int)box->base[1], (int)box->base[2]);
   return sweep(_physics->testSolid, current_chunk, box, velocity, &PHYS_basicCollisonCallback, false);
 }
 
 /*
  *    AUTO-STEPPING
-*/
+ */
 
-void PHYS_tryAutoStepping(PhysicsSystem *_physics __attribute((unused)), rigidbody *body __attribute((unused)), AABB *oldBox __attribute((unused)), vec3 _dx __attribute((unused))) {
+void PHYS_tryAutoStepping(PhysicsSystem* _physics __attribute((unused)), rigidbody* body __attribute((unused)), AABB* oldBox __attribute((unused)), vec3 _dx __attribute((unused))) {
 #if 0
     if (b.resting[1] >= 0 && !b.inFluid) return
 
@@ -370,9 +367,9 @@ void PHYS_tryAutoStepping(PhysicsSystem *_physics __attribute((unused)), rigidbo
 
 /*
  *    SLEEP CHECK
-*/
-bool *_isResting;
-static bool PHYS_sleepingCollisonCallback(float dist, int axis, int dir, float *vec) {
+ */
+bool* _isResting;
+static bool PHYS_sleepingCollisonCallback(float dist, int axis, int dir, float* vec) {
   (void)dist;
   (void)axis;
   (void)dir;
@@ -380,7 +377,7 @@ static bool PHYS_sleepingCollisonCallback(float dist, int axis, int dir, float *
   *_isResting = true;
   return true;
 }
-bool PHYS_bodyAsleep(PhysicsSystem *_physics, rigidbody *body, float time, bool noGravity) {
+bool PHYS_bodyAsleep(PhysicsSystem* _physics, rigidbody* body, float time, bool noGravity) {
   if (body->_sleepFrameCount > 0)
     return false;
   // without gravity bodies stay asleep until a force/impulse wakes them up
@@ -393,12 +390,12 @@ bool PHYS_bodyAsleep(PhysicsSystem *_physics, rigidbody *body, float time, bool 
   float gmult = 0.5f * time * time * body->gravityMultiplier;
   glm_vec3_scale(_physics->gravity, gmult, sleepVec);
   _isResting = &isResting;
-  chunk *current_chunk = WLRD_GetChunkAt((int)body->aabb.base[0], (int)body->aabb.base[1], (int)body->aabb.base[2]);
+  chunk* current_chunk = WLRD_GetChunkAt((int)body->aabb.base[0], (int)body->aabb.base[1], (int)body->aabb.base[2]);
   sweep(_physics->testSolid, current_chunk, &body->aabb, &(sleepVec[0]), &PHYS_sleepingCollisonCallback, true);
   return isResting;
 }
 
-static void cloneAABB(AABB *target, AABB *source) {
+static void cloneAABB(AABB* target, AABB* source) {
   glm_vec3_copy(source->base, target->base);
   glm_vec3_copy(source->max, target->max);
   glm_vec3_copy(source->vec, target->vec);

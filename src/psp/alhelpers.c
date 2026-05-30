@@ -30,7 +30,7 @@
 
 #include "alhelpers.h"
 
-const char *ChannelsName(ALenum chans) {
+const char* ChannelsName(ALenum chans) {
   switch (chans) {
     case AL_MONO_SOFT:
       return "Mono";
@@ -50,7 +50,7 @@ const char *ChannelsName(ALenum chans) {
   return "Unknown Channels";
 }
 
-const char *TypeName(ALenum type) {
+const char* TypeName(ALenum type) {
   switch (type) {
     case AL_BYTE_SOFT:
       return "S8";
@@ -306,11 +306,11 @@ ALenum GetFormat(ALenum channels, ALenum type, LPALISBUFFERFORMATSUPPORTEDSOFT p
   return format;
 }
 
-void AL_APIENTRY wrap_BufferSamples(ALuint buffer, ALuint samplerate, ALenum internalformat, ALsizei samples, ALenum channels, ALenum type, const ALvoid *data) {
+void AL_APIENTRY wrap_BufferSamples(ALuint buffer, ALuint samplerate, ALenum internalformat, ALsizei samples, ALenum channels, ALenum type, const ALvoid* data) {
   alBufferData(buffer, internalformat, data, FramesToBytes(samples, channels, type), samplerate);
 }
 
-const char *openAlErrorToString(int err) {
+const char* openAlErrorToString(int err) {
   switch (err) {
     case AL_NO_ERROR:
       return "AL_NO_ERROR";
@@ -327,8 +327,8 @@ const char *openAlErrorToString(int err) {
 }
 
 int InitAL(void) {
-  ALCdevice *device;
-  ALCcontext *ctx;
+  ALCdevice* device;
+  ALCcontext* ctx;
 
   log_trace("Trying to open device");
 
@@ -355,8 +355,8 @@ int InitAL(void) {
 }
 
 void CloseAL(void) {
-  ALCdevice *device;
-  ALCcontext *ctx;
+  ALCdevice* device;
+  ALCcontext* ctx;
 
   /* Close the device belonging to the current context, and destroy the
    * context. */

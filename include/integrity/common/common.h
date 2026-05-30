@@ -1,12 +1,11 @@
 #pragma once
 
-#ifdef _arch_dreamcast
+#if defined(_arch_dreamcast)
 #include <dc/fmath.h>
 #include <integrity/dreamcast/cygprofile.h>
 #include <kos.h>
 #endif
 
-#include <assert.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
@@ -16,9 +15,9 @@
 #include <string.h>
 
 #ifdef __GNUC__
-  #include <strings.h>
-  #define stricmp strcasecmp
-  #define strnicmp strncasecmp
+#include <strings.h>
+#define stricmp strcasecmp
+#define strnicmp strncasecmp
 #endif
 
 #ifdef NO_RESTRICT
@@ -50,6 +49,9 @@ extern float dc_safe_atof(const char* str);
   const char* window_title = text;     \
   int _FULLSCREEN = fullscreen;
 
+extern const char* window_title;
+extern int _FULLSCREEN;
+
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define ABS(a) (((a) < 0) ? -(a) : (a))
@@ -57,8 +59,8 @@ extern float dc_safe_atof(const char* str);
 
 #define Q_CIRCLE (M_PI / 2)
 #define SX_CIRCLE (M_PI / 4)
-#define DEG2RAD(x) (x * M_PI / 180)
-#define RAD2DEG(x) (x * 180 / M_PI)
+#define DEG2RAD(x) ((x) * M_PI / 180)
+#define RAD2DEG(x) ((x) * 180 / M_PI)
 
 /* Test for GCC > 5.0.0 */
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
@@ -79,10 +81,8 @@ extern void Sys_SetFullscreen(bool fullscreen);
 extern void Game_InputHandler(char c);
 extern void Host_Input(float time);
 
-/* Sound System */
 int SYS_SND_Destroy(void);
 int SYS_SND_Setup(void);
 
 #if defined(PSP) && defined(DEBUG)
-// #define printf log_trace
 #endif

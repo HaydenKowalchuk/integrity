@@ -1,20 +1,20 @@
-#include <stdbool.h>
-#include <stdio.h>
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
+#include <desktop/glfw_input.h>
+#include <glad/glad.h>
 #include <integrity/common/common.h>
 #include <integrity/common/input.h>
 #include <integrity/common/renderer.h>
-#include <desktop/glfw_input.h>
+#include <stdbool.h>
+#include <stdio.h>
+
 #include "../private.h"
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void processInput(GLFWwindow *window);
-void close_callback(GLFWwindow *window);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+void close_callback(GLFWwindow* window);
 
-static GLFWwindow *main_window;
-static GLFWmonitor *monitor;
+static GLFWwindow* main_window;
+static GLFWmonitor* monitor;
 
 // settings
 unsigned int SCR_WIDTH = 640;
@@ -53,7 +53,7 @@ void Sys_SetFullscreen(bool fullscreen) {
     glfwGetWindowPos(main_window, &_window_pos[0], &_window_pos[1]);
     glfwGetWindowSize(main_window, &_window_size[0], &_window_size[1]);
 
-    const GLFWvidmode *mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
     glfwSetWindowMonitor(main_window, monitor, 0, 0, mode->width, mode->height, 0);
   } else {
@@ -62,11 +62,11 @@ void Sys_SetFullscreen(bool fullscreen) {
   }
 }
 
-void error_func(int a, const char *str) {
+void error_func(int a, const char* str) {
   printf("GLFW Error[%d]: %s\n", a, str);
 }
 
-int __attribute__((weak)) main(int argc, char **argv) {
+int __attribute__((weak)) main(int argc, char** argv) {
   glfwSetErrorCallback(&error_func);
 
   if (!glfwInit()) {
@@ -77,9 +77,6 @@ int __attribute__((weak)) main(int argc, char **argv) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-  extern const char *window_title;
-  extern int _FULLSCREEN;
-
   char _w_title[64] = "Integrity Engine";
   if (window_title != NULL && strlen(window_title) != 0) {
     strncpy(_w_title, window_title, 63);
@@ -88,7 +85,7 @@ int __attribute__((weak)) main(int argc, char **argv) {
 
   /* Get current monitor info incase we need fullscreen */
   monitor = glfwGetPrimaryMonitor();
-  const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+  const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
   glfwWindowHint(GLFW_RED_BITS, mode->redBits);
   glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
@@ -162,7 +159,7 @@ int __attribute__((weak)) main(int argc, char **argv) {
   return 0;
 }
 
-void processInput(GLFWwindow *window) {
+void processInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     Game_Exit();
     glfwSetWindowShouldClose(window, true);
@@ -173,19 +170,19 @@ void processInput(GLFWwindow *window) {
     Sys_SetFullscreen(!Sys_IsFullscreen());
   }
 
-  joystick_present =  glfwJoystickPresent(GLFW_JOYSTICK_1);
+  joystick_present = glfwJoystickPresent(GLFW_JOYSTICK_1);
 
   processInputFromJoystick();
   processInputFromKeyboard(window);
 }
 
 /* Handle window size changes */
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   (void)window;
   glViewport(0, 0, width, height);
 }
 
-void close_callback(GLFWwindow *window) {
+void close_callback(GLFWwindow* window) {
   (void)window;
   Game_Exit();
 }

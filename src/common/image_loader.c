@@ -20,20 +20,20 @@
 
 #include <stb_image.h>
 
-static tx_image *IMG_load_internal(const char *path) {
+static tx_image* IMG_load_internal(const char* path) {
   GAMEJAM_LOG_DEBUG("%s called with %s", __func__, path);
-  tx_image *img = NULL;
+  tx_image* img = NULL;
   uint32_t crc = 0;
   if (path == NULL) {
-    img = (tx_image *)calloc(1, sizeof(tx_image));
+    img = (tx_image*)calloc(1, sizeof(tx_image));
     GAMEJAM_LOG_ERROR("missing path");
     return img;
   }
   int length = strlen(path);
-  crc32(&crc, (uint8_t *)path, length);
+  crc32(&crc, (uint8_t*)path, length);
 
   if (resource_object_find(crc) == -1) {
-    img = (tx_image *)calloc(1, sizeof(tx_image));
+    img = (tx_image*)calloc(1, sizeof(tx_image));
 
     /* Check if file even exists */
     if (!FS_FileExists(path)) {
@@ -43,7 +43,7 @@ static tx_image *IMG_load_internal(const char *path) {
     GAMEJAM_LOG_DEBUG("calling stbi load");
 
     size_t path_bytes = (length > 16) ? 16 : length;
-    const char *src_start = path + (length - path_bytes);
+    const char* src_start = path + (length - path_bytes);
     memset(img->name, 0, sizeof(img->name));
     memcpy(img->name, src_start, path_bytes);
     img->name[path_bytes] = '\0';
@@ -68,27 +68,27 @@ static tx_image *IMG_load_internal(const char *path) {
   } else {
     GAMEJAM_LOG_DEBUG("Found already loaded Image! crc: %08X, %s\n", (unsigned int)crc, path);
     resource_object_add('i', crc, img);
-    return (tx_image *)(resource_object_pointer(crc));
+    return (tx_image*)(resource_object_pointer(crc));
   }
 }
 
-tx_image *IMG_load_from_memory(const unsigned char *buffer, int len) {
-  tx_image *img = NULL;
+tx_image* IMG_load_from_memory(const unsigned char* buffer, int len) {
+  tx_image* img = NULL;
 
   uint32_t crc = 0;
-  crc32(&crc, (uint8_t *)&buffer, 4);
+  crc32(&crc, (uint8_t*)&buffer, 4);
 
   if (resource_object_find(crc) == -1) {
-    img = (tx_image *)malloc(sizeof(tx_image));
+    img = (tx_image*)malloc(sizeof(tx_image));
     memset(img, 0, sizeof(tx_image));
-    snprintf(img->name, 16, "0x%08" PRIXPTR, (void *)buffer);
+    snprintf(img->name, 16, "0x%08" PRIXPTR, (void*)buffer);
 
     GAMEJAM_LOG_DEBUG("%s", img->name);
 
     img->name[15] = '\0';
     img->crc = crc;
     // stbi_set_flip_vertically_on_load(false);  // maybe true?
-    img->data = stbi_load_from_memory((const unsigned char *)buffer,
+    img->data = stbi_load_from_memory((const unsigned char*)buffer,
                                       len,
                                       &img->width,
                                       &img->height,
@@ -109,26 +109,26 @@ tx_image *IMG_load_from_memory(const unsigned char *buffer, int len) {
     GAMEJAM_LOG_DEBUG("Found already loaded Image! crc:  %08X, 0x%08" PRIXPTR "", (unsigned int)crc, (uintptr_t)buffer);
 
     resource_object_add('i', crc, NULL);
-    return (tx_image *)(resource_object_pointer(crc));
+    return (tx_image*)(resource_object_pointer(crc));
   }
 }
 
-tx_image *IMG_load(const char *path) {
+tx_image* IMG_load(const char* path) {
   return IMG_load_internal(FS_ResolvePathTemp(path));
 }
 
-tx_image *IMG_load_boolean(const char *path, bool transform) {
+tx_image* IMG_load_boolean(const char* path, bool transform) {
   return IMG_load_internal((transform) ? FS_ResolvePathTemp(path) : path);
 }
 
-void IMG_unload(tx_image *img) {
+void IMG_unload(tx_image* img) {
   if ((img != NULL) && (img->data != NULL)) {
     stbi_image_free(img->data);
     img->data = NULL;
   }
 }
 
-void IMG_destroy(tx_image **img) {
+void IMG_destroy(tx_image** img) {
   GAMEJAM_LOG_DEBUG("%s called ", __func__);
   if ((*img) != NULL) {
     IMG_unload((*img));
@@ -145,7 +145,7 @@ void IMG_destroy(tx_image **img) {
   *img = NULL;
 }
 
-sprite IMG_create_sprite(tx_image *img, int x, int y, int x2, int y2) {
+sprite IMG_create_sprite(tx_image* img, int x, int y, int x2, int y2) {
   sprite spr = (sprite){.parent = img,
                         .u = (float)(x / (float)img->width),
                         .v = (float)(y / (float)img->height),
@@ -157,6 +157,6 @@ sprite IMG_create_sprite(tx_image *img, int x, int y, int x2, int y2) {
   return spr;
 }
 
-sprite IMG_create_sprite_scaled(tx_image *img, int x, int y, int x2, int y2, float scale) {
+sprite IMG_create_sprite_scaled(tx_image* img, int x, int y, int x2, int y2, float scale) {
   return IMG_create_sprite(img, (int)(x * scale), (int)(y * scale), (int)(x2 * scale), (int)(y2 * scale));
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 void crc32(uint32_t* crc, const uint8_t* data, size_t len);

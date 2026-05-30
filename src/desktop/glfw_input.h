@@ -1,4 +1,4 @@
 #pragma once
 
 void processInputFromJoystick(void);
-void processInputFromKeyboard(GLFWwindow *window);
+void processInputFromKeyboard(GLFWwindow* window);

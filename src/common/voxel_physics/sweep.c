@@ -18,7 +18,7 @@ static float max_t = 0.0;
 static int sweep_axis = 0;
 static float epsilon;
 static blockTest getVoxel;
-static void *__chunk;
+static void* __chunk;
 static CollisionCallback callback;
 
 #define ERROR_CORRECTION (float)(1e-5);
@@ -148,8 +148,8 @@ static int stepForward(void) {
 
 // core implementation:
 
-//static float sweep_impl(blockTest _getVoxel, void *_chunk, CollisionCallback _callback, vec3 _vec, vec3 _base, vec3 _max)
-static float sweep_impl(blockTest _getVoxel, void *_chunk, CollisionCallback _callback) {
+// static float sweep_impl(blockTest _getVoxel, void *_chunk, CollisionCallback _callback, vec3 _vec, vec3 _base, vec3 _max)
+static float sweep_impl(blockTest _getVoxel, void* _chunk, CollisionCallback _callback) {
   // consider algo as a raycast along the AABB's leading corner
   // as raycast enters each new voxel, iterate in 2D over the AABB's
   // leading face in that axis looking for collisions
@@ -193,17 +193,17 @@ static float sweep_impl(blockTest _getVoxel, void *_chunk, CollisionCallback _ca
   return cumulative_t;
 }
 
-float sweep(blockTest _getVoxel, void *_chunk, AABB *box, vec3 dir, CollisionCallback _callback, bool noTranslate) {
+float sweep(blockTest _getVoxel, void* _chunk, AABB* box, vec3 dir, CollisionCallback _callback, bool noTranslate) {
   // init parameter float arrays
   glm_vec3_copy(dir, vec);
   glm_vec3_copy(box->max, sweep_max);
   glm_vec3_copy(box->base, base);
 
-  //if (equals(epsilon, 0))
+  // if (equals(epsilon, 0))
   epsilon = 1e-6f;
 
   // run sweep implementation
-  //float dist = sweep_impl(getVoxel, _chunk, _callback, vec, base, sweep_max);
+  // float dist = sweep_impl(getVoxel, _chunk, _callback, vec, base, sweep_max);
   float dist = sweep_impl(_getVoxel, _chunk, _callback);
 
   // translate box by distance needed to updated base value

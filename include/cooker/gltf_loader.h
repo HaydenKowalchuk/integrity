@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cooker/shared_defs.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct {
   GraphicsHeader header;

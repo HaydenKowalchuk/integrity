@@ -1,9 +1,9 @@
 #include <arch/arch.h>
 #include <assert.h>
 #include <integrity/common/common.h>
+#include <integrity/common/file_access.h>
 #include <integrity/common/input.h>
 #include <integrity/common/renderer.h>
-#include <integrity/common/file_access.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +11,7 @@
 
 #include "../private.h"
 
-static void drawtext(int x, int y, const char *string);
+static void drawtext(int x, int y, const char* string);
 void snd_bump_poll(void);
 
 // settings
@@ -19,12 +19,12 @@ unsigned int SCR_WIDTH = 640;
 unsigned int SCR_WIDTH_WIDE = 854;
 unsigned int SCR_HEIGHT = 480;
 
-int Sys_FileTime(const char *path) {
+int Sys_FileTime(const char* path) {
   struct stat buffer;
   return ((stat(path, &buffer) == 0) ? 1 : -1);
 }
 
-void Sys_mkdir(__attribute__((unused)) const char *path) {
+void Sys_mkdir(__attribute__((unused)) const char* path) {
 }
 
 /*
@@ -52,7 +52,7 @@ void Sys_Quit(void) {
 #endif
 }
 
-void Sys_Error(const char *error, ...) {
+void Sys_Error(const char* error, ...) {
   va_list argptr;
 
   printf("Sys_Error: ");
@@ -64,7 +64,7 @@ void Sys_Error(const char *error, ...) {
   Sys_Quit();
 }
 
-void Sys_Printf(const char *fmt, ...) {
+void Sys_Printf(const char* fmt, ...) {
   va_list argptr;
 
   va_start(argptr, fmt);
@@ -105,14 +105,14 @@ void Sys_SetFullscreen(bool fullscreen) {
   (void)fullscreen;
 }
 
-static void drawtext(int x, int y, const char *string) {
+static void drawtext(int x, int y, const char* string) {
   printf("%s\n", string);
   int offset = ((y * 640) + x);
-  char *kos_missing_constness = (void *)string;
+  char* kos_missing_constness = (void*)string;
   bfont_draw_str(vram_s + offset, 640, 1, kos_missing_constness);
 }
 
-static void assert_hnd(const char *file, int line, const char *expr, const char *msg, const char *func) {
+static void assert_hnd(const char* file, int line, const char* expr, const char* msg, const char* func) {
   char strbuffer[256];
 
   /* Reset video mode, clear screen */
@@ -139,13 +139,13 @@ void processInput(void) {
   static inputs _input;
   unsigned int buttons;
 
-  maple_device_t *cont;
-  cont_state_t *state;
+  maple_device_t* cont;
+  cont_state_t* state;
 
   cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
   if (!cont)
     return;
-  state = (cont_state_t *)maple_dev_status(cont);
+  state = (cont_state_t*)maple_dev_status(cont);
 
   buttons = state->buttons;
 
@@ -175,7 +175,7 @@ void processInput(void) {
 
 static int done = 0;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // Set up assertion handler
   assert_set_handler(assert_hnd);
 
@@ -184,7 +184,6 @@ int main(int argc, char **argv) {
   FS_AddSearchPath("/cd");
   FS_AddSearchPath("/sd/integrity");
   FS_AddSearchPath("/ide/integrity");
-
 
   glKosInit();
 

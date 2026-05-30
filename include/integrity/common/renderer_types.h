@@ -6,11 +6,10 @@
 #define VERTEX 0xe0000000
 
 #if defined(_arch_dreamcast) || defined(DESKTOP)
-#define _RGBA_FORMAT (GL_BGRA)
+#define RGBA_FORMAT (GL_BGRA)
 #else
-#define _RGBA_FORMAT (4)
+#define RGBA_FORMAT (4)
 #endif
-
 
 #if defined(_arch_dreamcast) || defined(DESKTOP)
 #define PACK_ARGB8888(r, g, b, a) ((uint32_t)(((uint8_t)(a) << 24) + ((uint8_t)(r) << 16) + ((uint8_t)(g) << 8) + (uint8_t)(b)))

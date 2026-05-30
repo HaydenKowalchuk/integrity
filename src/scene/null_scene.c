@@ -13,8 +13,6 @@ struct scene null_scene = {
     .flags = SCENE_BLOCK,
 };
 
-extern scene scene_start;
-
 static void Null_Update(float time) {
   (void)time;
   if (!is_loaded) {

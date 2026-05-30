@@ -11,10 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/unistd.h>
 
 #include "../private.h"
 #include "psp_setup.h"
-#include <sys/unistd.h>
 
 void Sys_Quit(void);
 
@@ -46,7 +46,7 @@ static EGLint attrib_list[] = {
     0, /* 10 */
     EGL_NONE};
 
-void Sys_Error(const char *error, ...) {
+void Sys_Error(const char* error, ...) {
   va_list argptr;
 
   printf("Sys_Error: ");
@@ -58,14 +58,13 @@ void Sys_Error(const char *error, ...) {
   Sys_Quit();
 }
 
-void Sys_Printf(const char *fmt, ...) {
+void Sys_Printf(const char* fmt, ...) {
   va_list argptr;
 
   va_start(argptr, fmt);
   vprintf(fmt, argptr);
   va_end(argptr);
 }
-
 
 float Sys_FloatTime(void) {
   struct timeval tp;
@@ -87,7 +86,7 @@ unsigned int Sys_Frames(void) {
   return frame_count;
 }
 
-char *Sys_ConsoleInput(void) {
+char* Sys_ConsoleInput(void) {
   return NULL;
 }
 
@@ -224,7 +223,7 @@ void processInput(void) {
   INPT_ReceiveFromHost(_input);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   SetupCallbacks();
   setbuf(stdout, NULL);
   setbuf(stderr, NULL);

@@ -5,22 +5,22 @@ static int skip_init = 0;
 
 scene empty = {.flags = INT_MIN};
 
-struct StackNode *newNode(scene data) {
-  struct StackNode *stackNode = (struct StackNode *)malloc(sizeof(struct StackNode));
+struct StackNode* newNode(scene data) {
+  struct StackNode* stackNode = (struct StackNode*)malloc(sizeof(struct StackNode));
   stackNode->data = data;
   stackNode->next = NULL;
   return stackNode;
 }
 
-bool isEmpty(struct StackNode *root) {
+bool isEmpty(struct StackNode* root) {
   return !root;
 }
 
-void push(struct StackNode **root, scene data) {
-  struct StackNode *stackNode = newNode(data);
+void push(struct StackNode** root, scene data) {
+  struct StackNode* stackNode = newNode(data);
   stackNode->next = *root;
   *root = stackNode;
-  struct scene *current = &(*root)->data;
+  struct scene* current = &(*root)->data;
 
   /* Call Init */
   if (current->init && !skip_init) {
@@ -28,14 +28,14 @@ void push(struct StackNode **root, scene data) {
   }
 }
 
-scene pop(struct StackNode **root) {
+scene pop(struct StackNode** root) {
   if (isEmpty(*root)) {
     return (scene){.flags = INT_MIN};
   }
 
-  struct StackNode *temp = *root;
+  struct StackNode* temp = *root;
   *root = (*root)->next;
-  struct scene *popped = &temp->data;
+  struct scene* popped = &temp->data;
   struct scene ret = *popped;
 
   /* Call Exit */
@@ -53,7 +53,7 @@ scene pop(struct StackNode **root) {
   return ret;
 }
 
-scene *peek(struct StackNode **root) {
+scene* peek(struct StackNode** root) {
   if (isEmpty(*root)) {
     return &empty;
   }

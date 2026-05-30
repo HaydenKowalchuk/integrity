@@ -1,9 +1,10 @@
 #include <integrity/common/snd_wavload.h>
+#include <string.h>
 
-#if SOUND
+#if defined(SOUND)
 static bool is_big_endian(void) {
   int a = 1;
-  return !((char *)&a)[0];
+  return !((char*)&a)[0];
 }
 
 static inline unsigned long swap_32bit(unsigned long ul) {
@@ -13,17 +14,7 @@ static inline unsigned long swap_32bit(unsigned long ul) {
                          ((ul & 0x000000FF) << 24));
 }
 
-static int convert_to_int(char *buffer, int len) {
-  /*
-  int i = 0;
-  int a = 0;
-  if (!is_big_endian())
-    for (; i < len; i++)
-      ((char *)&a)[i] = buffer[i];
-  else
-    for (; i < len; i++)
-      ((char *)&a)[3 - i] = buffer[i];
-  */
+static int convert_to_int(char* buffer, int len) {
   (void)len;
   int a;
 
@@ -34,11 +25,11 @@ static int convert_to_int(char *buffer, int len) {
   return a;
 }
 
-ALboolean LoadWAVFile(const char *filename, ALenum *format, ALvoid **data, ALsizei *size, ALsizei *freq) {
+ALboolean LoadWAVFile(const char* filename, ALenum* format, ALvoid** data, ALsizei* size, ALsizei* freq) {
   char buffer[4];
   int read = 0;
 
-  FILE *in = fopen(filename, "rb");
+  FILE* in = fopen(filename, "rb");
   if (!in) {
 #ifdef DEBUG
     fprintf(stderr, "ERROR: for path(%s)\n", filename);
@@ -57,10 +48,10 @@ ALboolean LoadWAVFile(const char *filename, ALenum *format, ALvoid **data, ALsiz
   }
 
   read += fread(buffer, 4, sizeof(char), in);
-  read += fread(buffer, 4, sizeof(char), in);  //WAVE
-  read += fread(buffer, 4, sizeof(char), in);  //fmt
-  read += fread(buffer, 4, sizeof(char), in);  //16
-  read += fread(buffer, 2, sizeof(char), in);  //1
+  read += fread(buffer, 4, sizeof(char), in);  // WAVE
+  read += fread(buffer, 4, sizeof(char), in);  // fmt
+  read += fread(buffer, 4, sizeof(char), in);  // 16
+  read += fread(buffer, 2, sizeof(char), in);  // 1
   read += fread(buffer, 2, sizeof(char), in);
 
   int chan = convert_to_int(buffer, 2);
@@ -70,10 +61,10 @@ ALboolean LoadWAVFile(const char *filename, ALenum *format, ALvoid **data, ALsiz
   read += fread(buffer, 2, sizeof(char), in);
   read += fread(buffer, 2, sizeof(char), in);
   int bps = convert_to_int(buffer, 2);
-  read += fread(buffer, 4, sizeof(char), in);  //data
+  read += fread(buffer, 4, sizeof(char), in);  // data
   read += fread(buffer, 4, sizeof(char), in);
   *size = (ALsizei)convert_to_int(buffer, 4);
-  *data = (ALvoid *)malloc(*size * sizeof(char));
+  *data = (ALvoid*)malloc(*size * sizeof(char));
   read += fread(*data, *size, sizeof(char), in);
 
   if (chan == 1) {

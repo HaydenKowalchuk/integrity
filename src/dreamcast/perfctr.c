@@ -54,18 +54,18 @@ void PMCR_Enable(int which, unsigned short mode, unsigned char count_type, unsig
   // Don't do anything if being asked to enable an already-enabled counter
   if ((which == 1) && ((!pmcr_enabled) || (pmcr_enabled == 2))) {
     // counter 1
-    *((volatile unsigned short *)PMCR1_CTRL_REG) = pmcr_ctrl;
+    *((volatile unsigned short*)PMCR1_CTRL_REG) = pmcr_ctrl;
 
     pmcr_enabled += 1;
   } else if ((which == 2) && ((!pmcr_enabled) || (pmcr_enabled == 1))) {
     // counter 2
-    *((volatile unsigned short *)PMCR2_CTRL_REG) = pmcr_ctrl;
+    *((volatile unsigned short*)PMCR2_CTRL_REG) = pmcr_ctrl;
 
     pmcr_enabled += 2;
   } else if ((which == 3) && (!pmcr_enabled)) {
     // Both
-    *((volatile unsigned short *)PMCR1_CTRL_REG) = pmcr_ctrl;
-    *((volatile unsigned short *)PMCR2_CTRL_REG) = pmcr_ctrl;
+    *((volatile unsigned short*)PMCR1_CTRL_REG) = pmcr_ctrl;
+    *((volatile unsigned short*)PMCR2_CTRL_REG) = pmcr_ctrl;
 
     pmcr_enabled = 3;
   }
@@ -86,7 +86,7 @@ static const unsigned int pmcr2_regl = PMCTR2L_REG;
 
 // Sorry, can only read one counter at a time!
 // out_array should be an array consisting of 2x unsigned ints.
-void PMCR_Read(int which, volatile unsigned int *out_array) {
+void PMCR_Read(int which, volatile unsigned int* out_array) {
   // if pmcr is not enabled, this function will just return 0
 
   // little endian (big endian would need to flip [0] and [1])
@@ -167,18 +167,18 @@ void PMCR_Restart(int which, unsigned short mode, unsigned char count_type) {
 void PMCR_Stop(int which) {
   if ((which == 1) && (pmcr_enabled & 0x1)) {
     // counter 1
-    *((volatile unsigned short *)PMCR1_CTRL_REG) = PMCR_STOP_COUNTER;
+    *((volatile unsigned short*)PMCR1_CTRL_REG) = PMCR_STOP_COUNTER;
 
     pmcr_enabled &= 0x2;
   } else if ((which == 2) && (pmcr_enabled & 0x2)) {
     // counter 2
-    *((volatile unsigned short *)PMCR2_CTRL_REG) = PMCR_STOP_COUNTER;
+    *((volatile unsigned short*)PMCR2_CTRL_REG) = PMCR_STOP_COUNTER;
 
     pmcr_enabled &= 0x1;
   } else if ((which == 3) && (pmcr_enabled == 3)) {
     // Both
-    *((volatile unsigned short *)PMCR1_CTRL_REG) = PMCR_STOP_COUNTER;
-    *((volatile unsigned short *)PMCR2_CTRL_REG) = PMCR_STOP_COUNTER;
+    *((volatile unsigned short*)PMCR1_CTRL_REG) = PMCR_STOP_COUNTER;
+    *((volatile unsigned short*)PMCR2_CTRL_REG) = PMCR_STOP_COUNTER;
 
     pmcr_enabled = 0;
   }
@@ -190,18 +190,18 @@ void PMCR_Stop(int which) {
 void PMCR_Disable(int which) {
   if (which == 1) {
     // counter 1
-    *((volatile unsigned short *)PMCR1_CTRL_REG) = PMCR_DISABLE_COUNTER;
+    *((volatile unsigned short*)PMCR1_CTRL_REG) = PMCR_DISABLE_COUNTER;
 
     pmcr_enabled &= 0x2;
   } else if (which == 2) {
     // counter 2
-    *((volatile unsigned short *)PMCR2_CTRL_REG) = PMCR_DISABLE_COUNTER;
+    *((volatile unsigned short*)PMCR2_CTRL_REG) = PMCR_DISABLE_COUNTER;
 
     pmcr_enabled &= 0x1;
   } else if (which == 3) {
     // Both
-    *((volatile unsigned short *)PMCR1_CTRL_REG) = PMCR_DISABLE_COUNTER;
-    *((volatile unsigned short *)PMCR2_CTRL_REG) = PMCR_DISABLE_COUNTER;
+    *((volatile unsigned short*)PMCR1_CTRL_REG) = PMCR_DISABLE_COUNTER;
+    *((volatile unsigned short*)PMCR2_CTRL_REG) = PMCR_DISABLE_COUNTER;
 
     pmcr_enabled = 0;
   }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <integrity/common/common.h>
+#include <integrity/common/sound_system.h>
 
 #if SOUND
 #define AL_ALEXT_PROTOTYPES 1
@@ -9,5 +10,5 @@
 #include <AL/alc.h>
 #include <AL/alext.h>
 
-ALboolean LoadWAVFile(const char *filename, ALenum *format, ALvoid **data, ALsizei *size, ALsizei *freq);
+ALboolean LoadWAVFile(const char* filename, ALenum* format, ALvoid** data, ALsizei* size, ALsizei* freq);
 #endif

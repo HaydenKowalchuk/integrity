@@ -9,7 +9,7 @@
 #define GAMEJAM_LOG_LEVEL (1)
 #include <gamejam/log.h>
 
-const char *safe_dirname(const char *path) {
+const char* safe_dirname(const char* path) {
   GAMEJAM_LOG_DEBUG("%s input %s", __func__, path);
   static char dir_buffer[FS_MAX_PATH] = {0};
   static const char dot[] = ".";
@@ -41,9 +41,9 @@ const char *safe_dirname(const char *path) {
 
 extern char error_str[64];
 
-static int LoadObjAndConvert(const char *filename, model_obj *obj);
+static int LoadObjAndConvert(const char* filename, model_obj* obj);
 
-static model_obj *OBJ_load_internal(const char *path) {
+static model_obj* OBJ_load_internal(const char* path) {
   GAMEJAM_LOG_DEBUG("%s input %s", __func__, path);
   if (path == NULL) {
     GAMEJAM_LOG_ERROR("Error %s given null path!", __func__);
@@ -53,12 +53,12 @@ static model_obj *OBJ_load_internal(const char *path) {
 
   uint32_t crc = 0;
   int length = strlen(path);
-  crc32(&crc, (uint8_t *)path, length);
+  crc32(&crc, (uint8_t*)path, length);
   GAMEJAM_LOG_DEBUG("path: %d %lu %s", length, crc, path);
 
   if (resource_object_find(crc) == -1) {
     GAMEJAM_LOG_DEBUG("model_obj malloc(%d)", sizeof(model_obj));
-    model_obj *obj = malloc(sizeof(model_obj));
+    model_obj* obj = malloc(sizeof(model_obj));
     GAMEJAM_LOG_DEBUG("SUCCESS model_obj malloc(%d)", sizeof(model_obj));
     if (obj == NULL) {
       GAMEJAM_LOG_ERROR("malloc failed!");
@@ -97,21 +97,21 @@ static model_obj *OBJ_load_internal(const char *path) {
     GAMEJAM_LOG_DEBUG("Found already loaded OBJ! crc: %08X, %s", (unsigned int)crc, path);
 
     resource_object_add('o', crc, NULL);
-    return (model_obj *)(resource_object_pointer(crc));
+    return (model_obj*)(resource_object_pointer(crc));
   }
 }
 
-model_obj *OBJ_load(const char *path) {
+model_obj* OBJ_load(const char* path) {
   GAMEJAM_LOG_DEBUG("enter %s input %s", __func__, path);
   return OBJ_load_internal(FS_ResolvePathTemp(path));
 }
 
-model_obj *OBJ_load_boolean(const char *path, bool transform) {
+model_obj* OBJ_load_boolean(const char* path, bool transform) {
   GAMEJAM_LOG_DEBUG("enter %s input %s", __func__, path);
   return OBJ_load_internal((transform) ? FS_ResolvePathTemp(path) : path);
 }
 
-void OBJ_destroy(model_obj **obj) {
+void OBJ_destroy(model_obj** obj) {
   GAMEJAM_LOG_DEBUG("enter %s", __func__);
   if (*obj != NULL) {
     if ((*obj)->tris) {
@@ -126,8 +126,8 @@ void OBJ_destroy(model_obj **obj) {
   }
 }
 
-static void *obj_ptr = NULL;
-static void get_file_data(void *ctx, const char *filename, const int is_mtl, const char *obj_filename, char **data, size_t *len) {
+static void* obj_ptr = NULL;
+static void get_file_data(void* ctx, const char* filename, const int is_mtl, const char* obj_filename, char** data, size_t* len) {
   // NOTE: If you allocate the buffer with malloc(),
   // You can define your own memory management struct and pass it through `ctx`
   // to store the pointer and free memories at clean up stage(when you quit an
@@ -147,7 +147,7 @@ static void get_file_data(void *ctx, const char *filename, const int is_mtl, con
     return;
   }
 
-  FILE *fp = fopen(filename, "rb");
+  FILE* fp = fopen(filename, "rb");
   if (!fp) {
     (*data) = NULL;
     (*len) = 0;
@@ -158,7 +158,7 @@ static void get_file_data(void *ctx, const char *filename, const int is_mtl, con
   size_t file_size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
 
-  void *bundle = malloc(file_size);
+  void* bundle = malloc(file_size);
   if (!bundle) {
     fclose(fp);
     (*data) = NULL;
@@ -180,7 +180,7 @@ static void get_file_data(void *ctx, const char *filename, const int is_mtl, con
   (*len) = file_size;
 }
 
-static int LoadObjAndConvert(const char *path, model_obj *obj) {
+static int LoadObjAndConvert(const char* path, model_obj* obj) {
   GAMEJAM_LOG_DEBUG("%s input %s", __func__, path);
   if (path == NULL) {
     GAMEJAM_LOG_ERROR("Error %s given null path!", __func__);
@@ -188,9 +188,9 @@ static int LoadObjAndConvert(const char *path, model_obj *obj) {
   }
 
   tinyobj_attrib_t attrib;
-  tinyobj_shape_t *shapes = NULL;
+  tinyobj_shape_t* shapes = NULL;
   size_t num_shapes = 0;
-  tinyobj_material_t *materials = NULL;
+  tinyobj_material_t* materials = NULL;
   size_t num_materials = 0;
   int read = 0;
 
@@ -233,9 +233,9 @@ static int LoadObjAndConvert(const char *path, model_obj *obj) {
   GAMEJAM_LOG_DEBUG("Num verts: %d", attrib.num_face_num_verts - 1);
 
 #if defined(_arch_dreamcast) || defined(DESKTOP)
-  glvert_fast_t *verts = malloc(sizeof(glvert_fast_t) * num_triangles * 3);
+  glvert_fast_t* verts = malloc(sizeof(glvert_fast_t) * num_triangles * 3);
 #else
-  psp_fast_t *verts = malloc(sizeof(psp_fast_t) * num_triangles * 3);
+  psp_fast_t* verts = malloc(sizeof(psp_fast_t) * num_triangles * 3);
 #endif
 
   for (i = 0; i < attrib.num_face_num_verts; i++) {
@@ -432,7 +432,7 @@ static int LoadObjAndConvert(const char *path, model_obj *obj) {
 }
 
 // Routine to load an tx_image as a texture.
-GLuint RNDR_CreateTextureFromImageEx(tx_image *img, int wrap_s, int wrap_t, int mag_filter, int min_filter) {
+GLuint RNDR_CreateTextureFromImageEx(tx_image* img, int wrap_s, int wrap_t, int mag_filter, int min_filter) {
   GAMEJAM_LOG_DEBUG("enter %s", __func__);
   if ((img->id == 0) && (img->data == NULL)) {
     return 0;
@@ -454,18 +454,18 @@ GLuint RNDR_CreateTextureFromImageEx(tx_image *img, int wrap_s, int wrap_t, int 
   }
 }
 
-GLuint RNDR_CreateTextureFromImage(tx_image *img) {
+GLuint RNDR_CreateTextureFromImage(tx_image* img) {
   return RNDR_CreateTextureFromImageEx(img, GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR);
 }
 
-void OBJ_bind(model_obj *obj) {
+void OBJ_bind(model_obj* obj) {
 #if defined(_arch_dreamcast) || defined(DESKTOP)
   glVertexPointer(3, GL_FLOAT, sizeof(glvert_fast_t), &obj->tris[0].vert);
   glTexCoordPointer(2, GL_FLOAT, sizeof(glvert_fast_t), &obj->tris[0].texture);
-  glColorPointer(_RGBA_FORMAT, GL_UNSIGNED_BYTE, sizeof(glvert_fast_t), &obj->tris[0].color);
+  glColorPointer(RGBA_FORMAT, GL_UNSIGNED_BYTE, sizeof(glvert_fast_t), &obj->tris[0].color);
 #else
   glVertexPointer(3, GL_FLOAT, sizeof(psp_fast_t), &obj->tris[0].vert);
   glTexCoordPointer(2, GL_FLOAT, sizeof(psp_fast_t), &obj->tris[0].texture);
-  glColorPointer(_RGBA_FORMAT, GL_UNSIGNED_BYTE, sizeof(psp_fast_t), &obj->tris[0].color);
+  glColorPointer(RGBA_FORMAT, GL_UNSIGNED_BYTE, sizeof(psp_fast_t), &obj->tris[0].color);
 #endif
 }

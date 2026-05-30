@@ -27,9 +27,9 @@ void R_EndBatchingSurfacesQuads(void) {
     glTexCoordPointer(2, GL_FLOAT, sizeof(glvert_fast_t), &r_batchedfastvertexes_text[0].texture);
     glColorPointer(GL_BGRA, GL_UNSIGNED_BYTE, sizeof(glvert_fast_t), &r_batchedfastvertexes_text[0].color);
 #else
-    //glVertexPointer(3, GL_FLOAT, sizeof(glvert_fast_t), &r_batchedfastvertexes_text[0].vert);
-    //glTexCoordPointer(2, GL_FLOAT, sizeof(glvert_fast_t), &r_batchedfastvertexes_text[0].texture);
-    //glColorPointer(GL_BGRA, GL_UNSIGNED_BYTE, sizeof(glvert_fast_t), &r_batchedfastvertexes_text[0].color);
+    // glVertexPointer(3, GL_FLOAT, sizeof(glvert_fast_t), &r_batchedfastvertexes_text[0].vert);
+    // glTexCoordPointer(2, GL_FLOAT, sizeof(glvert_fast_t), &r_batchedfastvertexes_text[0].texture);
+    // glColorPointer(GL_BGRA, GL_UNSIGNED_BYTE, sizeof(glvert_fast_t), &r_batchedfastvertexes_text[0].color);
     glInterleavedArrays(GL_T2F_C4UB_V3F, 0, &r_batchedfastvertexes_text[0]);
 #endif
 

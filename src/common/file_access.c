@@ -11,7 +11,7 @@
 #define GAMEJAM_LOG_GROUP "FS"
 #include <gamejam/log.h>
 
-void FS_DebugDumpFolder(const char *path);
+void FS_DebugDumpFolder(const char* path);
 
 // Initialize with the current directory as the first search path
 static char fs_search_paths[FS_MAX_PATHS][FS_MAX_PATH] = {""};
@@ -25,7 +25,7 @@ void FS_ClearSearchPaths(void) {
 /**
  * Adds a base directory to the search chain.
  */
-void FS_AddSearchPath(const char *path) {
+void FS_AddSearchPath(const char* path) {
   GAMEJAM_LOG_DEBUG("%s called!", __func__);
 
   if (fs_num_paths >= FS_MAX_PATHS) {
@@ -52,14 +52,14 @@ void FS_AddSearchPath(const char *path) {
   fs_num_paths++;
 }
 
-void FS_DebugDumpFolder(const char *path) {
-  DIR *dir = opendir(path);
+void FS_DebugDumpFolder(const char* path) {
+  DIR* dir = opendir(path);
   if (!dir) {
     GAMEJAM_LOG_ERROR("DEBUG: Cannot open folder %s", path);
     return;
   }
 
-  struct dirent *entry;
+  struct dirent* entry;
   GAMEJAM_LOG_INFO("--- REAL HARDWARE DIRECTORY DUMP (%s) ---", path);
   while ((entry = readdir(dir)) != NULL) {
     GAMEJAM_LOG_INFO(" Found file: '%s'", entry->d_name);
@@ -68,7 +68,7 @@ void FS_DebugDumpFolder(const char *path) {
   closedir(dir);
 }
 
-static void FS_TargetSubpathToUpper(char *path, const char *search_prefix) {
+static void FS_TargetSubpathToUpper(char* path, const char* search_prefix) {
   size_t prefix_len = strlen(search_prefix);
 
   // Safety check: ensure the path is at least as long as the prefix
@@ -77,7 +77,7 @@ static void FS_TargetSubpathToUpper(char *path, const char *search_prefix) {
   }
 
   // Advance the pointer past the search prefix to only modify the user's subpath
-  char *subpath = path + prefix_len;
+  char* subpath = path + prefix_len;
 
   // Uppercase everything that follows (subfolders + filename)
   for (int i = 0; subpath[i]; i++) {
@@ -111,7 +111,7 @@ static void FS_TargetSubpathToUpper(char *path, const char *search_prefix) {
  * Searches the chain for 'filename'.
  * If found, fills 'out_path' and returns true.
  */
-bool FS_ResolvePath(const char *filename, char *out_path) {
+bool FS_ResolvePath(const char* filename, char* out_path) {
   GAMEJAM_LOG_DEBUG("[FS] Searching for %s", filename);
 
   if (filename && filename[0] == '/') {
@@ -168,14 +168,14 @@ bool FS_ResolvePath(const char *filename, char *out_path) {
  * Searches the chain for 'filename'.
  * If found, returns path, otherwise null
  */
-const char *FS_ResolvePathTemp(const char *filename) {
+const char* FS_ResolvePathTemp(const char* filename) {
   return FS_ResolvePath(filename, scratch_path) ? scratch_path : NULL;
 }
 
 /**
  * Original utility moved to FS_ prefix
  */
-int FS_FileLength(FILE *f) {
+int FS_FileLength(FILE* f) {
   int pos = ftell(f);
   fseek(f, 0, SEEK_END);
   int end = ftell(f);
@@ -193,10 +193,10 @@ int FS_FileLength(FILE *f) {
 /**
  * Takes a resolved path and verifies existence via handle opening
  */
-bool FS_FileExists(const char *path) {
+bool FS_FileExists(const char* path) {
   // Open the file directly. If the PSP kernel can't resolve the extent,
   // this returns NULL immediately, which is incredibly accurate.
-  FILE *f = fopen(path, "rb");
+  FILE* f = fopen(path, "rb");
   if (f) {
     fclose(f);
     return true;
@@ -204,8 +204,8 @@ bool FS_FileExists(const char *path) {
   return false;
 }
 
-bool FS_DirExists(const char *path) {
-  DIR *dir = opendir(path);
+bool FS_DirExists(const char* path) {
+  DIR* dir = opendir(path);
   if (!dir) {
     GAMEJAM_LOG_DEBUG("[FS] dir not found %s!", path);
     return false;

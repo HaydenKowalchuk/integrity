@@ -3,7 +3,7 @@
 
 #ifndef _WIN32
 #include <unistd.h>
-#define Sleep(x) usleep((x)*1000)
+#define Sleep(x) usleep((x) * 1000)
 #else
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -23,8 +23,8 @@
   }
 
 /* Some helper functions to get the name from the channel and type enums. */
-const char *ChannelsName(ALenum chans);
-const char *TypeName(ALenum type);
+const char* ChannelsName(ALenum chans);
+const char* TypeName(ALenum type);
 
 /* Helpers to convert frame counts and byte lengths. */
 ALsizei FramesToBytes(ALsizei size, ALenum channels, ALenum type);
@@ -40,14 +40,11 @@ ALenum GetFormat(ALenum channels, ALenum type, LPALISBUFFERFORMATSUPPORTEDSOFT p
 /* Loads samples into a buffer using the standard alBufferData call, but with a
  * LPALBUFFERSAMPLESSOFT-compatible prototype. Assumes internalformat is valid
  * for alBufferData, and that channels and type match it. */
-void AL_APIENTRY wrap_BufferSamples(ALuint buffer, ALuint samplerate,
-                                    ALenum internalformat, ALsizei samples,
-                                    ALenum channels, ALenum type,
-                                    const ALvoid *data);
+void AL_APIENTRY wrap_BufferSamples(ALuint buffer, ALuint samplerate, ALenum internalformat, ALsizei samples, ALenum channels, ALenum type, const ALvoid* data);
 
 /* Easy device init/deinit functions. InitAL returns 0 on success. */
 int InitAL(void);
 void CloseAL(void);
-const char *openAlErrorToString(int err);
+const char* openAlErrorToString(int err);
 
 #endif /* ALHELPERS_H */

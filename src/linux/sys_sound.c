@@ -36,7 +36,7 @@ typedef unsigned int ALuint;
 #define BACKEND "alut"
 #endif
 
-static void list_audio_devices(const ALCchar *devices) {
+static void list_audio_devices(const ALCchar* devices) {
   const ALCchar *device = devices, *next = devices + 1;
   size_t len = 0;
 
@@ -79,9 +79,9 @@ static inline ALenum to_al_format(short channels, short samples) {
 #endif
 
 #if SOUND
-ALCdevice *device;
+ALCdevice* device;
 
-ALCcontext *context;
+ALCcontext* context;
 ALuint buffer;
 ALfloat listenerOri[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f};
 ALboolean loop = AL_FALSE;
@@ -89,9 +89,9 @@ ALCenum error;
 ALint source_state;
 #endif
 
-int create_sound(ALuint *source, const char *filename) {
+int create_sound(ALuint* source, const char* filename) {
 #if SOUND
-  ALvoid *data;
+  ALvoid* data;
   ALsizei size, freq;
   ALenum format;
 
@@ -166,8 +166,8 @@ int SYS_SND_Setup(void) {
   // const ALCchar *devices;
 #ifdef LIBAUDIO
   int ret;
-  WaveInfo *wave;
-  char *bufferData;
+  WaveInfo* wave;
+  char* bufferData;
 #endif
 
   fprintf(stdout, "Using " BACKEND " as audio backend\n");
@@ -178,7 +178,7 @@ int SYS_SND_Setup(void) {
 
   list_audio_devices(alcGetString(NULL, ALC_DEVICE_SPECIFIER));
 
-  const ALCchar *defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+  const ALCchar* defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 
   device = alcOpenDevice(defaultDeviceName);
   if (!device) {

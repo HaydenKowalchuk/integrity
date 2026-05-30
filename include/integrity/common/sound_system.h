@@ -3,6 +3,7 @@
 /* Setup current targets that support sound with OpenAL */
 #if defined(__linux__) || defined(__APPLE__)
 #define SOUND (1)
+#define WAVLOAD (1)
 #endif
 #if defined(WINDOWS)
 #define SOUND (1)
@@ -25,4 +26,4 @@ int SYS_SND_Setup(void);
 int SYS_SND_Destroy(void);
 
 void SND_Play(ALuint source);
-int create_sound(ALuint *source, const char *filename);
+int create_sound(ALuint* source, const char* filename);

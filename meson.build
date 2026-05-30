@@ -1,5 +1,5 @@
 project(
-  'gamejam',
+  'integrity',
   'c',
   version: '1.0',
   default_options: ['c_std=c99', 'b_staticpic=false', 'default_library=static'],
@@ -7,7 +7,6 @@ project(
 )
 
 # Compiler arguments
-#arg_base = ['-Wall', '-Wextra', '-Wshadow', '-Wstack-protector', '-Wno-strict-prototypes', '-Wformat=0', '-std=gnu11', '-fsingle-precision-constant']
 arg_base = [
   '-Wshadow',
   '-Wstack-protector',
@@ -91,7 +90,13 @@ if opt_platform == 'linux'
   cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
 
   platform_dep += [glfw_dep, openal_dep, cglm_dep]
-  platform_src += files('src/desktop/glad.c','src/desktop/glfw_window.c', 'src/desktop/glfw_input.c',  'src/linux/sys_linux.c', 'src/linux/sys_sound.c')
+  platform_src += files(
+    'src/desktop/glad.c',
+    'src/desktop/glfw_input.c',
+    'src/desktop/glfw_window.c',
+    'src/linux/sys_linux.c',
+    'src/linux/sys_sound.c',
+  )
   platform_inc += include_directories('third-party/glad/include')
 
 elif opt_platform == 'macos'
@@ -116,8 +121,14 @@ elif opt_platform == 'macos'
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
   openal_dep = dependency('openal-soft', fallback: ['openal-soft', 'openal_dep'])
 
-  platform_dep += [ glfw_dep, openal_dep, stb_dep, cglm_dep]
-  platform_src += files('src/desktop/glad.c','src/desktop/glfw_window.c', 'src/desktop/glfw_input.c', 'src/macos/sys_macos.c', 'src/macos/sys_sound.c')
+  platform_dep += [glfw_dep, openal_dep, stb_dep, cglm_dep]
+  platform_src += files(
+    'src/desktop/glad.c',
+    'src/desktop/glfw_input.c',
+    'src/desktop/glfw_window.c',
+    'src/macos/sys_macos.c',
+    'src/macos/sys_sound.c',
+  )
   platform_inc += include_directories('third-party/glad/include')
 
 elif opt_platform == 'windows'
@@ -142,8 +153,14 @@ elif opt_platform == 'windows'
   openal_dep = dependency('openal', fallback: ['openal', 'openal_dep'])
   cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
 
-  platform_dep += [ glfw_dep, openal_dep, cglm_dep]
-  platform_src += files('src/desktop/glad.c',  'src/desktop/glfw_window.c',  'src/desktop/glfw_input.c',    'src/windows/sys_sound.c',    'src/windows/sys_windows.c'  )
+  platform_dep += [glfw_dep, openal_dep, cglm_dep]
+  platform_src += files(
+    'src/desktop/glad.c',
+    'src/desktop/glfw_input.c',
+    'src/desktop/glfw_window.c',
+    'src/windows/sys_sound.c',
+    'src/windows/sys_windows.c',
+  )
   platform_inc += include_directories('deps/glad/include', 'deps/openal-win/include')
   platform_inc += include_directories('third-party/glad/include')
 

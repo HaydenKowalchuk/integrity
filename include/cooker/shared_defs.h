@@ -1,9 +1,9 @@
 #pragma once
 
-#include <stdint.h>
 #include <integrity/common/renderer_types.h>
+#include <stdint.h>
 
-#define MAGIC_GRAPHICS  0x4D434421
+#define MAGIC_GRAPHICS 0x4D434421
 
 typedef enum {
   PASS_OPAQUE = 0,

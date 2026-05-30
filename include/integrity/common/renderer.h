@@ -16,7 +16,6 @@
 #endif
 #if defined(__MINGW32__) || defined(__linux__) || defined(__APPLE__)
 #define GLFW_INCLUDE_GLU
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #endif
@@ -25,7 +24,7 @@
 #include <GL/glu.h>
 #include <GLES/egl.h>
 #undef psp_log
-extern void __pspgl_log(const char *fmt, ...);
+extern void __pspgl_log(const char* fmt, ...);
 /* disable verbose logging to "ms0:/log.txt" */
 #if 0
 #define psp_log(x...) __pspgl_log(x)
@@ -44,7 +43,8 @@ extern void __pspgl_log(const char *fmt, ...);
     errcode = eglGetError();                     \
     if (errcode != EGL_SUCCESS) {                \
       __pspgl_log("%s (%d): EGL error 0x%04x\n", \
-                  __FUNCTION__, __LINE__,        \
+                  __FUNCTION__,                  \
+                  __LINE__,                      \
                   (unsigned int)errcode);        \
     }                                            \
   } while (0)
@@ -54,15 +54,14 @@ extern void __pspgl_log(const char *fmt, ...);
 #endif
 
 /* Override gluPerspective & gluLookAt on desktop */
-#if defined(__MINGW32__) || defined(__linux__)  || defined(__APPLE__)
+#if defined(__MINGW32__) || defined(__linux__) || defined(__APPLE__)
 
 #else
 
 #endif
 
-
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
-GLenum glCheckError_(const char *file, int line);
+GLenum glCheckError_(const char* file, int line);
 
 // We call this right after our OpenGL window is created.
 void RNDR_Init(int Width, int Height);
@@ -71,10 +70,10 @@ void RNDR_Reset(void);
 /* The function called when our window is resized (which shouldn't happen, because we're fullscreen) */
 void RNDR_Resize(int Width, int Height);
 
-GLuint RNDR_CreateTextureFromImage(tx_image *img);
-GLuint RNDR_CreateTextureFromImageEx(tx_image *img, int wrap_s, int wrap_t, int mag_filter, int min_filter);
+GLuint RNDR_CreateTextureFromImage(tx_image* img);
+GLuint RNDR_CreateTextureFromImageEx(tx_image* img, int wrap_s, int wrap_t, int mag_filter, int min_filter);
 
-static inline void GL_Bind(tx_image *img) {
+static inline void GL_Bind(tx_image* img) {
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, img->id);
 }

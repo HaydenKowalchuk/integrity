@@ -1,17 +1,9 @@
-/*
- * Filename: d:\Dev\Dreamcast\UB_SHARE\gamejam\game\src\scene\menu.c
- * Path: d:\Dev\Dreamcast\UB_SHARE\gamejam\game\src\scene
- * Created Date: Monday, November 11th 2019, 9:40:56 pm
- * Author: Hayden Kowalchuk
- *
- * Copyright (c) 2019 HaydenKow
- */
-
 #include "input_test.h"
 
 #include <integrity/common/input.h>
 #include <integrity/common/renderer.h>
 #include <integrity/ui/ui_backend.h>
+#include <stdbool.h>
 
 WINDOW_TITLE("input_test", WINDOWED);
 
@@ -26,7 +18,7 @@ static void Input_Render2D(float time);
 STARTUP_SCENE(&Input_Init, &Input_Exit, &Input_Render2D, NULL, &Input_Update, SCENE_BLOCK);
 SCENE(scene_input_test, &Input_Init, NULL, &Input_Render2D, NULL, &Input_Update, SCENE_BLOCK);
 
-static void draw_button(int x, int y, const char *label, int w, int h, bool active) {
+static void draw_button(int x, int y, const char* label, int w, int h, bool active) {
   dimen_RECT rect = {x, y, w, h};
   if (active)
     UI_DrawFill(&rect, 255, 255, 255);
@@ -97,11 +89,7 @@ static void Input_Render2D(float time) {
   draw_button(290, 300, "START", 60, 30, INPT_Button(BTN_START));
 
   /* D-Pad */
-  draw_dpad(150, 200, 80,
-            INPT_DPADDirection(DPAD_UP),
-            INPT_DPADDirection(DPAD_DOWN),
-            INPT_DPADDirection(DPAD_LEFT),
-            INPT_DPADDirection(DPAD_RIGHT));
+  draw_dpad(150, 200, 80, INPT_DPADDirection(DPAD_UP), INPT_DPADDirection(DPAD_DOWN), INPT_DPADDirection(DPAD_LEFT), INPT_DPADDirection(DPAD_RIGHT));
 
   /* Analog stick area */
   dimen_RECT stick_bg = {230, 156, 140, 140};
@@ -112,10 +100,10 @@ static void Input_Render2D(float time) {
   UI_DrawFill(&stick_inner, 40, 40, 40);
 
   /* Center crosshair */
-   dimen_RECT cross_v = {298, 158, 4, 136};
-   UI_DrawFill(&cross_v, 60, 60, 60);
-   dimen_RECT cross_h = {232, 224, 136, 4};
-   UI_DrawFill(&cross_h, 60, 60, 60);
+  dimen_RECT cross_v = {298, 158, 4, 136};
+  UI_DrawFill(&cross_v, 60, 60, 60);
+  dimen_RECT cross_h = {232, 224, 136, 4};
+  UI_DrawFill(&cross_h, 60, 60, 60);
 
   float ax = INPT_AnalogF(AXES_X);
   float ay = INPT_AnalogF(AXES_Y);
@@ -145,7 +133,6 @@ static void Input_Render2D(float time) {
   UI_TextSize(14);
   draw_button(20, 72, "L TRIG", 80, 30, INPT_TriggerPressed(TRIGGER_L));
   draw_button(540, 72, "R TRIG", 80, 30, INPT_TriggerPressed(TRIGGER_R));
-
 
   /* Bottom help text */
   UI_TextSize(16);
