@@ -67,8 +67,8 @@ platform_dep = []
 platform_src = []
 platform_inc = []
 
-if opt_platform == 'linux'
-  arg_code += ['-DPLATFORM_LINUX', '-DDESKTOP']
+if opt_platform in ['linux', 'macos', 'windows']
+  arg_code += ['-DDESKTOP']
   arg_base += ['-fdiagnostics-color']
 
   if opt_buildtype == 'debug'
@@ -86,7 +86,15 @@ if opt_platform == 'linux'
   endif
 
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
-  miniaudio_dep = dependency('miniaudio', fallback: ['miniaudio', 'ma_dep'])
+  miniaudio_dep = dependency(
+    'miniaudio',
+    fallback: ['miniaudio', 'ma_dep'],
+    default_options: [
+      'examples=disabled',
+      'tests=disabled',
+      'tools=disabled',
+    ],
+  )
 
   platform_dep += [glfw_dep, miniaudio_dep]
   platform_src += files(
@@ -94,71 +102,21 @@ if opt_platform == 'linux'
     'src/desktop/glfw_input.c',
     'src/desktop/glfw_window.c',
     'src/desktop/sys_sound.c',
-    'src/linux/sys_linux.c',
   )
   platform_inc += include_directories('third-party/glad/include')
+endif
+
+if opt_platform == 'linux'
+  arg_code += ['-DPLATFORM_LINUX']
+  platform_src += files('src/linux/sys_linux.c')
 
 elif opt_platform == 'macos'
-  arg_code += ['-DPLATFORM_MACOS', '-DDESKTOP', '-DGL_SILENCE_DEPRECATION']
-  arg_base += ['-fdiagnostics-color']
-
-  if opt_buildtype == 'debug'
-    arg_code += ['-DDEBUG', '-g', '-O0', '-fno-inline', '-fno-omit-frame-pointer']
-  else
-    arg_code += [
-      '-DNDEBUG',
-      '-DQUIET',
-      '-g0',
-      '-Os',
-      '-ffast-math',
-      '-funsafe-math-optimizations',
-      '-fomit-frame-pointer',
-    ]
-  endif
-
-  glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
-  miniaudio_dep = dependency('miniaudio', fallback: ['miniaudio', 'ma_dep'])
-
-  platform_dep += [glfw_dep, miniaudio_dep]
-  platform_src += files(
-    'src/desktop/glad.c',
-    'src/desktop/glfw_input.c',
-    'src/desktop/glfw_window.c',
-    'src/desktop/sys_sound.c',
-    'src/macos/sys_macos.c',
-  )
-  platform_inc += include_directories('third-party/glad/include')
+  arg_code += ['-DPLATFORM_MACOS', '-DGL_SILENCE_DEPRECATION']
+  platform_src += files('src/macos/sys_macos.c')
 
 elif opt_platform == 'windows'
-  arg_code += ['-DPLATFORM_WINDOWS', '-DDESKTOP']
-  arg_base += ['-fdiagnostics-color']
-
-  if opt_buildtype == 'debug'
-    arg_code += ['-DDEBUG', '-g', '-O0', '-fno-inline', '-fno-omit-frame-pointer']
-  else
-    arg_code += [
-      '-DNDEBUG',
-      '-DQUIET',
-      '-g0',
-      '-Os',
-      '-ffast-math',
-      '-funsafe-math-optimizations',
-      '-fomit-frame-pointer',
-    ]
-  endif
-
-  glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
-  miniaudio_dep = dependency('miniaudio', fallback: ['miniaudio', 'ma_dep'])
-
-  platform_dep += [glfw_dep, miniaudio_dep]
-  platform_src += files(
-    'src/desktop/glad.c',
-    'src/desktop/glfw_input.c',
-    'src/desktop/glfw_window.c',
-    'src/desktop/sys_sound.c',
-    'src/windows/sys_windows.c',
-  )
-  platform_inc += include_directories('third-party/glad/include')
+  arg_code += ['-DPLATFORM_WINDOWS']
+  platform_src += files('src/windows/sys_windows.c')
 
 elif opt_platform == 'dreamcast'
   arg_code += ['-DPLATFORM_DREAMCAST', '-DBUILD_LIBGL']
@@ -240,19 +198,23 @@ elif opt_platform == 'psp'
   ]
 
   pspgl_dep = dependency('pspgl', fallback: ['pspgl', 'pspgl_dep'])
-  miniaudio_dep = dependency('miniaudio', fallback: ['miniaudio', 'ma_dep'], default_options: [
-    'b_staticpic=false',
-    'backends=',
-    'runtime_linking=disabled',
-    'device_io=disabled',
-    'engine=false',
-    'generation=false',
-    'libvorbis=disabled',
-    'libopus=disabled',
-    'examples=disabled',
-    'tests=disabled',
-    'tools=disabled',
-  ])
+  miniaudio_dep = dependency(
+    'miniaudio',
+    fallback: ['miniaudio', 'ma_dep'],
+    default_options: [
+      'b_staticpic=false',
+      'backends=',
+      'runtime_linking=disabled',
+      'device_io=disabled',
+      'engine=false',
+      'generation=false',
+      'libvorbis=disabled',
+      'libopus=disabled',
+      'examples=disabled',
+      'tests=disabled',
+      'tools=disabled',
+    ],
+  )
 
   platform_dep += [pspgl_dep, miniaudio_dep]
   platform_src += files(
