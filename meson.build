@@ -2,7 +2,7 @@ project(
   'gamejam',
   'c',
   version: '1.0',
-  default_options: ['c_std=gnu17', 'b_staticpic=false', 'default_library=static'],
+  default_options: ['c_std=c99', 'b_staticpic=false', 'default_library=static'],
   meson_version: '>=0.65.0',
 )
 

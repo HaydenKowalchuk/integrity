@@ -58,3 +58,4 @@ dkms.conf
 
 .DS_Store
 build-*/*
+.serena/
