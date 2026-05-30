@@ -1,5 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #include <integrity/common/common.h>
 #include <integrity/common/input.h>
@@ -20,6 +22,8 @@ unsigned int SCR_HEIGHT = 480;
 static int _window_pos[2];
 static int _window_size[2];
 
+int joystick_present = 0;
+
 float Sys_FloatTime(void) {
   return (float)glfwGetTime();
 }
@@ -27,6 +31,9 @@ static unsigned int frame_count;
 unsigned int Sys_Frames(void) {
   return frame_count;
 }
+int SYS_SND_Setup(void);
+int SYS_SND_Destroy(void);
+
 void Sys_Quit(void) {
   Game_Exit();
   glfwSetWindowShouldClose(main_window, true);
@@ -58,35 +65,8 @@ void Sys_SetFullscreen(bool fullscreen) {
 void error_func(int a, const char *str) {
   printf("GLFW Error[%d]: %s\n", a, str);
 }
-#if 1
-/*
-int startup(void);
-__attribute__((weak)) int main(int argc, char **argv) {
-  (void)argc;
-  (void)argv;
-  return startup(0, NULL);
-}
-*/
-int main(int argc, char **argv);
-int startup(int argc, char **argv);
-int WinMain(void *a, void *b, char **c, int d) {
-  (void)a;
-  (void)b;
-  (void)c;
-  (void)d;
-  return startup(0, NULL);
-}
 
-int wWinMain(void *a, void *b, char **c, int d) {
-  (void)a;
-  (void)b;
-  (void)c;
-  (void)d;
-  return startup(0, NULL);
-}
-#endif
-int startup(int argc, char **argv) {
-//__attribute__((weak)) int main(int argc, char **argv) {
+int __attribute__((weak)) main(int argc, char **argv) {
   glfwSetErrorCallback(&error_func);
 
   if (!glfwInit()) {
@@ -146,20 +126,17 @@ int startup(int argc, char **argv) {
 
   frame_count = 0;
 
-  float currenttime, newtime, frametime;
+  float currenttime;
   float accumulator = 0.0f;
   const float dt = 1.0f / 60.0f;
 
   currenttime = Sys_FloatTime();
   Game_Main(argc, argv);
 
-  int update_count = 0;
-
   // render loop
-  // -----------
   while (!glfwWindowShouldClose(main_window)) {
-    newtime = Sys_FloatTime();
-    frametime = newtime - currenttime;
+    float newtime = Sys_FloatTime();
+    float frametime = newtime - currenttime;
     currenttime = newtime;
     accumulator += frametime;
 
@@ -169,14 +146,6 @@ int startup(int argc, char **argv) {
       Host_Input(dt);
       Host_Update(dt);
       accumulator -= dt;
-      //update_count++;
-      //printf("Accum: %f\n", accumulator);
-      if (update_count > 3) {
-        if ((int)(accumulator / dt))
-          printf("Dropping ~%d frames\n", (int)(accumulator / dt));
-        //accumulator = 0.0f;
-        //update_count = 0;
-      }
     }
 
     // Render
@@ -193,78 +162,10 @@ int startup(int argc, char **argv) {
   return 0;
 }
 
-static inputs _input;
-static uint8_t axes_x = 128;
-static uint8_t axes_y = 128;
-
 void processInput(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     Game_Exit();
     glfwSetWindowShouldClose(window, true);
-  }
-
-  /*  Reset Everything */
-  memset(&_input, 0, sizeof(inputs));
-
-  /* Mark out DPAD inputs */
-  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-    _input.dpad |= (DPAD_LEFT);
-  }
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-    _input.dpad |= (DPAD_RIGHT);
-  }
-  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-    _input.dpad |= (DPAD_DOWN);
-  }
-  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-    _input.dpad |= (DPAD_UP);
-  }
-
-  /* Mark out Buttons */
-  if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
-    _input.btn_a = 1;
-  }
-  if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
-    _input.btn_b = 1;
-  }
-  if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-    _input.btn_x = 1;
-  }
-  if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-    _input.btn_y = 1;
-  }
-  if (glfwGetKey(window, GLFW_KEY_SLASH) == GLFW_PRESS) {
-    _input.btn_start = 1;
-  }
-
-  /* Mark out DPAD inputs */
-  if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-    if (axes_x > 0)
-      axes_x--;
-  }
-  if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-    if (axes_x < 255)
-      axes_x++;
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
-    if (axes_y > 0)
-      axes_y--;
-  }
-  if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-    if (axes_y < 255)
-      axes_y++;
-  }
-
-  _input.axes_1 = axes_x;
-  _input.axes_2 = axes_y;
-
-  /* Triggers */
-  if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-    _input.trg_left = 1;
-  }
-  if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-    _input.trg_right = 1;
   }
 
   /* Fullscreen Toggle */
@@ -272,7 +173,10 @@ void processInput(GLFWwindow *window) {
     Sys_SetFullscreen(!Sys_IsFullscreen());
   }
 
-  INPT_ReceiveFromHost(_input);
+  joystick_present =  glfwJoystickPresent(GLFW_JOYSTICK_1);
+
+  processInputFromJoystick();
+  processInputFromKeyboard(window);
 }
 
 /* Handle window size changes */
