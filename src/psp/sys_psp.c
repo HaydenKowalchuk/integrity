@@ -1,8 +1,7 @@
-#include <GL/glut.h>  // Header File For The GLu32 Library
+#include <GL/glut.h>
 #include <GLES/egl.h>
 #include <integrity/common/common.h>
 #include <integrity/common/input.h>
-#include <integrity/common/log/log.h>
 #include <integrity/common/renderer.h>
 #include <pspctrl.h>
 #include <pspgl_misc.h>
@@ -11,10 +10,11 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include "../private.h"
 #include "psp_setup.h"
-#include "sys/unistd.h"
+#include <sys/unistd.h>
 
 void Sys_Quit(void);
 
@@ -46,13 +46,6 @@ static EGLint attrib_list[] = {
     0, /* 10 */
     EGL_NONE};
 
-/*
-===============================================================================
-
-SYSTEM IO
-
-===============================================================================
-*/
 void Sys_Error(const char *error, ...) {
   va_list argptr;
 
@@ -73,7 +66,6 @@ void Sys_Printf(const char *fmt, ...) {
   va_end(argptr);
 }
 
-#include <sys/time.h>
 
 float Sys_FloatTime(void) {
   struct timeval tp;
@@ -245,50 +237,10 @@ int main(int argc, char **argv) {
   FS_AddSearchPath("disc0:/PSP_GAME/USRDIR");
   FS_AddSearchPath("host0:/");
 
-  static char g_path_bin[FS_MAX_PATH] = {0};
-  static char g_path_col[FS_MAX_PATH] = {0};
-  static char g_path_obj[FS_MAX_PATH] = {0};
-  static char g_path_tex_man[FS_MAX_PATH] = {0};
-  static char g_path_tex_orc[FS_MAX_PATH] = {0};
-  static char g_path_key_obj[FS_MAX_PATH] = {0};
-  static char g_path_gate_obj[FS_MAX_PATH] = {0};
-
-  // Resolve the paths
-  bool res_bin = FS_ResolvePath("simple.bin", g_path_bin);
-  bool res_col = FS_ResolvePath("simple.col", g_path_col);
-  bool res_obj = FS_ResolvePath("model.obj", g_path_obj);
-  bool res_tex_man = FS_ResolvePath("skin_man.png", g_path_tex_man);
-  bool res_tex_orc = FS_ResolvePath("skin_orc.png", g_path_tex_orc);
-  bool res_key_obj = FS_ResolvePath("key.obj", g_path_key_obj);
-  bool res_gate_obj = FS_ResolvePath("gate.obj", g_path_gate_obj);
-
-  // Print the results
-  printf("\n--- FS PATH RESOLUTION RESULTS ---\n");
-  printf("simple.bin   -> [%s] (%s)\n", g_path_bin, res_bin ? "SUCCESS" : "FAILED");
-  printf("simple.col   -> [%s] (%s)\n", g_path_col, res_col ? "SUCCESS" : "FAILED");
-  printf("model.obj    -> [%s] (%s)\n", g_path_obj, res_obj ? "SUCCESS" : "FAILED");
-  printf("skin_man.png -> [%s] (%s)\n", g_path_tex_man, res_tex_man ? "SUCCESS" : "FAILED");
-  printf("skin_orc.png -> [%s] (%s)\n", g_path_tex_orc, res_tex_orc ? "SUCCESS" : "FAILED");
-  printf("key.obj      -> [%s] (%s)\n", g_path_key_obj, res_key_obj ? "SUCCESS" : "FAILED");
-  printf("gate.obj     -> [%s] (%s)\n", g_path_gate_obj, res_gate_obj ? "SUCCESS" : "FAILED");
-  printf("-----------------------------------\n\n");
-
-  /* Log Setup */
-  log_setup();
-#if 0
-  FILE *test_log = fopen(psp_log_file, "w");
-  if (test_log == NULL) {
-    printf("Could not open file");
-    return 0;
-  }
-  fclose(test_log);
-#endif
-  // log_set_fp(log_file);
   SYS_SND_Setup();
 
   create_gl();
 
-  // Setup Controls
   sceCtrlSetSamplingCycle(0);
   sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 
@@ -309,7 +261,6 @@ int main(int argc, char **argv) {
     currenttime = newtime;
 
     /* Handle Input in Game */
-
     Host_Input(dt);
     Host_Update(dt);
 

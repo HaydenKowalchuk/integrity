@@ -2,15 +2,14 @@
 #include <assert.h>
 #include <integrity/common/common.h>
 #include <integrity/common/input.h>
-#include <integrity/common/log/log.h>
 #include <integrity/common/renderer.h>
+#include <integrity/common/file_access.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 
 #include "../private.h"
-#include "integrity/common/file_access.h"
 
 static void drawtext(int x, int y, const char *string);
 void snd_bump_poll(void);
@@ -132,14 +131,10 @@ static void assert_hnd(const char *file, int line, const char *expr, const char 
   snprintf(strbuffer, 256, "  Message: %s", msg);
   drawtext(32, 160, strbuffer);
 
-  /* Hang - infinite loop */
-  // while (1)
-  //	;
   arch_menu();
 }
 
 // process all input: the handler will figure out which are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(void) {
   static inputs _input;
   unsigned int buttons;
@@ -190,16 +185,6 @@ int main(int argc, char **argv) {
   FS_AddSearchPath("/sd/integrity");
   FS_AddSearchPath("/ide/integrity");
 
-  /* Log Setup */
-  log_setup();
-  /*log_file = fopen("log.txt", "w");
-        if (log_file == NULL)
-        {
-                printf("Could not open file");
-                return 0;
-        }
-        log_set_fp(log_file);*/
-  // SYS_SND_Setup();
 
   glKosInit();
 

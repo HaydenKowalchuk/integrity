@@ -1,6 +1,6 @@
 #include <integrity/common/snd_wavload.h>
-#ifndef _arch_dreamcast
 
+#if SOUND
 static bool is_big_endian(void) {
   int a = 1;
   return !((char *)&a)[0];
@@ -83,10 +83,6 @@ ALboolean LoadWAVFile(const char *filename, ALenum *format, ALvoid **data, ALsiz
   }
 
   fclose(in);
-//#ifdef DEBUG
-#if 1
-  printf("Loaded WAV file of size %d!\n", read);
-#endif
   return AL_TRUE;
 }
 #endif

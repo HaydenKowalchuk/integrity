@@ -30,8 +30,6 @@
 
 #include "alhelpers.h"
 
-#include <integrity/common/log/log.h>
-
 const char *ChannelsName(ALenum chans) {
   switch (chans) {
     case AL_MONO_SOFT:

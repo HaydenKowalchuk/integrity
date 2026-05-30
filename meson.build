@@ -24,6 +24,10 @@ arg_linker = []
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required: false)
 umka_dep = dependency('umka-lang', fallback: ['umka', 'umka_dep'])
+stb_dep = dependency('stb', fallback: ['stb', 'stb_dep'])
+cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
+
+dep_base = [m_dep, umka_dep, stb_dep, cglm_dep]
 
 # Options
 opt_platform = get_option('platform')
@@ -82,7 +86,6 @@ if opt_platform == 'linux'
     ]
   endif
 
-  #glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
   openal_dep = dependency('openal', fallback: ['openal', 'openal_dep'])
   cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
@@ -112,8 +115,6 @@ elif opt_platform == 'macos'
   #glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
   openal_dep = dependency('openal-soft', fallback: ['openal-soft', 'openal_dep'])
-  stb_dep = dependency('stb', fallback: ['stb', 'stb_dep'])
-  cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
 
   platform_dep += [ glfw_dep, openal_dep, stb_dep, cglm_dep]
   platform_src += files('src/desktop/glad.c','src/desktop/glfw_window.c', 'src/desktop/glfw_input.c', 'src/macos/sys_macos.c', 'src/macos/sys_sound.c')
@@ -137,7 +138,6 @@ elif opt_platform == 'windows'
     ]
   endif
 
-  #glad_dep = dependency('glad', fallback: ['glad', 'glad_dep'])
   glfw_dep = dependency('glfw3', fallback: ['glfw', 'glfw_dep'])
   openal_dep = dependency('openal', fallback: ['openal', 'openal_dep'])
   cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
@@ -178,12 +178,9 @@ elif opt_platform == 'dreamcast'
   platform_dep += [gldc_dep, crayonvmu_dep, cglm_dep]
   platform_src += files(
     'src/dreamcast/perfctr.c',
-    'src/dreamcast/snd_wavload.c',
     'src/dreamcast/sys_dreamcast.c',
     'src/dreamcast/sys_sound.c',
   )
-  platform_inc += include_directories('deps/openal-dc/include') #'deps/minilzo',
-  #platform_inc += include_directories('src', 'src/common')
   platform_inc += include_directories(
     '/opt/toolchains/dc/kos/include',
     '/opt/toolchains/dc/kos/kernel/arch/dreamcast/include',
@@ -252,7 +249,7 @@ endif
 # Combine all sources and includes
 src_files += platform_src
 inc = [inc_base, platform_inc]
-dep = [m_dep, umka_dep, platform_dep]
+dep = [dep_base, platform_dep]
 arg_c = [arg_base, arg_code]
 
 # Build the library

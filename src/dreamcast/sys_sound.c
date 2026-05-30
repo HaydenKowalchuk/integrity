@@ -1,17 +1,25 @@
-#include <integrity/common/log/log.h>
+/*
+ * OpenAL example
+ *
+ * Copyright(C) Florian Fainelli <f.fainelli@gmail.com>
+ */
+
 #include <integrity/common/sound_system.h>
+
+#if SOUND
+#include <AL/al.h>
+#include <AL/alc.h>
+#else
+typedef unsigned int ALuint;
+#endif
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#define AL_ALEXT_PROTOTYPES 1
-#define ALC_EXT_EFX 1
-#include <AL/al.h>
-#include <AL/alc.h>
-#include <AL/alext.h>
-
+#if SOUND
 #define WAVLOAD
 
 #ifdef LIBAUDIO
@@ -25,35 +33,26 @@
 #define BACKEND "alut"
 #endif
 
-ALCdevice *device;
-
-ALCcontext *context;
-ALuint buffer;
-ALfloat listenerOri[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f};
-ALboolean loop = AL_FALSE;
-ALCenum error;
-ALint source_state;
-
 static void list_audio_devices(const ALCchar *devices) {
-  const ALCchar *device_str = devices, *next = devices + 1;
+  const ALCchar *device = devices, *next = devices + 1;
   size_t len = 0;
 
-  log_trace("Devices list:\n");
-  log_trace("----------\n");
-  while (device_str && *device_str != '\0' && next && *next != '\0') {
-    log_trace("%s\n", device_str);
-    len = strlen(device_str);
-    device_str += (len + 1);
+  fprintf(stdout, "Devices list:\n");
+  fprintf(stdout, "----------\n");
+  while (device && *device != '\0' && next && *next != '\0') {
+    fprintf(stdout, "%s\n", device);
+    len = strlen(device);
+    device += (len + 1);
     next += (len + 2);
   }
-  log_trace("----------\n");
+  fprintf(stdout, "----------\n");
 }
 
-#define TEST_ERROR(_msg)      \
-  error = alGetError();       \
-  if (error != AL_NO_ERROR) { \
-    log_error(_msg);          \
-    return -1;                \
+#define TEST_ERROR(_msg)        \
+  error = alGetError();         \
+  if (error != AL_NO_ERROR) {   \
+    fprintf(stderr, _msg "\n"); \
+    return -1;                  \
   }
 
 static inline ALenum to_al_format(short channels, short samples) {
@@ -74,41 +73,21 @@ static inline ALenum to_al_format(short channels, short samples) {
       return -1;
   }
 }
-
-/* This function gets called by pspaudiolib every time the
-    audio buffer needs to be filled. The sample format is
-    16-bit, stereo.
- */
-#ifdef PSP
-void audioCallback_OPENAL(void *buf, unsigned int length, void *userdata) {
-  (void)userdata;
-  // alcRenderSamplesSOFT(device, buf, length);
-
-  // memcpy(destination, first, (last - first) * sizeof(Sample));
-}
 #endif
 
-static void dc_sound_init(void) {
-  // pspAudioInit();
+#if SOUND
+ALCdevice *device;
 
-  // pspAudioSetChannelCallback(0, audioCallback_OPENAL, NULL);
-}
-
-static void dc_sound_destroy(void) {
-  // Clear the channel callback.
-  // pspAudioSetChannelCallback(0, 0, 0);
-
-  // Stop the audio system?
-  // pspAudioEndPre();
-
-  // Insert a false delay so the thread can be cleaned up.
-  // sceKernelDelayThread(50 * 1000);
-
-  // Shut down the audio system.
-  // pspAudioEnd();
-}
+ALCcontext *context;
+ALuint buffer;
+ALfloat listenerOri[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f};
+ALboolean loop = AL_FALSE;
+ALCenum error;
+ALint source_state;
+#endif
 
 int create_sound(ALuint *source, const char *filename) {
+#if SOUND
   ALvoid *data;
   ALsizei size, freq;
   ALenum format;
@@ -133,13 +112,13 @@ int create_sound(ALuint *source, const char *filename) {
   /* load data */
   wave = WaveOpenFileForReading("test.wav");
   if (!wave) {
-    printf("failed to read wave file\n");
+    fprintf(stderr, "failed to read wave file\n");
     return -1;
   }
 
   ret = WaveSeekFile(0, wave);
   if (ret) {
-    printf("failed to seek wave file\n");
+    fprintf(stderr, "failed to seek wave file\n");
     return -1;
   }
 
@@ -151,14 +130,14 @@ int create_sound(ALuint *source, const char *filename) {
 
   ret = WaveReadFile(bufferData, wave->dataSize, wave);
   if (ret != wave->dataSize) {
-    printf("short read: %d, want: %d\n", ret, wave->dataSize);
+    fprintf(stderr, "short read: %d, want: %d\n", ret, wave->dataSize);
     return -1;
   }
 
   alBufferData(buffer, to_al_format(wave->channels, wave->bitsPerSample), bufferData, wave->dataSize, wave->sampleRate);
   TEST_ERROR("failed to load buffer data");
 #elif defined(WAVLOAD)
-  if (!LoadWAVFile(FS_ResolvePathTemp((char *)filename), &format, &data, &size, &freq)) {
+  if (!LoadWAVFile(FS_ResolvePathTemp(filename), &format, &data, &size, &freq)) {
     return -1;
   }
 #else
@@ -171,13 +150,24 @@ int create_sound(ALuint *source, const char *filename) {
 
   alSourcei(*source, AL_BUFFER, buffer);
   TEST_ERROR("buffer binding");
-
+#else
+  (void)source;
+  (void)filename;
+#endif
   return 1;
 }
 
 int SYS_SND_Setup(void) {
+#if SOUND
   ALboolean enumeration;
-  const ALCchar *defaultDeviceName = '\0';
+  // const ALCchar *devices;
+#ifdef LIBAUDIO
+  int ret;
+  WaveInfo *wave;
+  char *bufferData;
+#endif
+
+  fprintf(stdout, "Using " BACKEND " as audio backend\n");
 
   enumeration = alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT");
   if (enumeration == AL_FALSE)
@@ -185,8 +175,7 @@ int SYS_SND_Setup(void) {
 
   list_audio_devices(alcGetString(NULL, ALC_DEVICE_SPECIFIER));
 
-  if (!defaultDeviceName)
-    defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+  const ALCchar *defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 
   device = alcOpenDevice(defaultDeviceName);
   if (!device) {
@@ -194,19 +183,16 @@ int SYS_SND_Setup(void) {
     return -1;
   }
 
-  log_trace("Device: %s\n", alcGetString(device, ALC_DEVICE_SPECIFIER));
+  fprintf(stdout, "Device: %s\n", alcGetString(device, ALC_DEVICE_SPECIFIER));
 
   alGetError();
-  int attribs[] = {ALC_FORMAT_CHANNELS_SOFT, ALC_STEREO_SOFT, ALC_FORMAT_TYPE_SOFT, ALC_SHORT_SOFT, ALC_FREQUENCY, 44100};
-  context = alcCreateContext(device, attribs);
+
+  context = alcCreateContext(device, NULL);
   if (!alcMakeContextCurrent(context)) {
-    log_error("failed to make default context\n");
+    fprintf(stderr, "failed to make default context\n");
     return -1;
   }
   TEST_ERROR("make default context");
-
-  /* setup our psp side of things */
-  dc_sound_init();
 
   /* set orientation */
   alListener3f(AL_POSITION, 0, 0, 1.0f);
@@ -215,61 +201,28 @@ int SYS_SND_Setup(void) {
   TEST_ERROR("listener velocity");
   alListenerfv(AL_ORIENTATION, listenerOri);
   TEST_ERROR("listener orientation");
-
-  /*
-  alGenSources((ALuint)1, &s_jump);
-  TEST_ERROR("source generation");
-
-  alSourcef(s_jump, AL_PITCH, 1);
-  TEST_ERROR("source pitch");
-  alSourcef(s_jump, AL_GAIN, 0.5f);
-  TEST_ERROR("source gain");
-  alSource3f(s_jump, AL_POSITION, 0, 0, 0);
-  TEST_ERROR("source position");
-  alSource3f(s_jump, AL_VELOCITY, 0, 0, 0);
-  TEST_ERROR("source velocity");
-  alSourcei(s_jump, AL_LOOPING, AL_FALSE);
-  TEST_ERROR("source looping");
-
-  alGenBuffers(1, &buffer);
-  TEST_ERROR("buffer generation");
-
-  TEST_ERROR("loading wav file");
-
-  alBufferData(buffer, format, data, size, freq);
-  TEST_ERROR("buffer copy");
-
-  alSourcei(source, AL_BUFFER, buffer);
-  TEST_ERROR("buffer binding");
-
-
-  alSourcei(s_jump, AL_BUFFER, buffer);
-  TEST_ERROR("buffer binding");
-  */
+#endif
 
   return 0;
 }
 
-void SND_Play(ALuint source) {
-  /* Not working at the moment */
-#if 0
-    alSourcePlay(source);
-    thd_pass();
-#endif
+void __attribute__((unused)) SND_Play(ALuint source) {
+#ifdef SOUND
+  alSourcePlay(source);
+#else
   (void)source;
+#endif
 }
 
 int SYS_SND_Destroy(void) {
-  /*OpenAL Teardown */
-
+#ifdef SOUND
   /* exit context */
   alDeleteBuffers(1, &buffer);
   device = alcGetContextsDevice(context);
   alcMakeContextCurrent(NULL);
   alcDestroyContext(context);
   alcCloseDevice(device);
+#endif
 
-  /*DCs Specifics */
-  dc_sound_destroy();
   return 0;
 }
