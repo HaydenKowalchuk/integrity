@@ -283,4 +283,4 @@ gamejam_dep = declare_dependency(
   link_with: gamejam_lib,
 )
 
-#subdir('examples')
+subdir('examples')

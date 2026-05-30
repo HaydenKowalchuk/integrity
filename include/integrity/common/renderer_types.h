@@ -24,6 +24,12 @@
 #define PACK_ARGB8888_OBJ(r, g, b, a) ((uint32_t)(((uint8_t)(a) << 24) + ((uint8_t)(r) << 16) + ((uint8_t)(g) << 8) + (uint8_t)(b)))
 #endif
 
+#if defined(_arch_dreamcast)
+#define PACK_COLOR(r, g, b, a) PACK_BGRA8888(r, g, b, a)
+#else
+#define PACK_COLOR(r, g, b, a) PACK_RGBA8888(r, g, b, a)
+#endif
+
 #define VTX_COLOR_WHITE .color = {.packed = 0xFFFFFFFF}
 
 typedef struct __attribute__((packed, aligned(4))) vec3f_gl {

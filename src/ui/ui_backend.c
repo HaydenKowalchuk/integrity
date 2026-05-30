@@ -263,7 +263,8 @@ void UI_DrawStringCentered(int x, int y, const char *str) {
 }
 void UI_TextAlpha(float a) {
   text_alpha = a;
-  text_color_packed = PACK_BGRA8888(255 * text_color[2], 255 * text_color[1], 255 * text_color[0], 255 * text_alpha);
+
+  text_color_packed = PACK_COLOR(255 * text_color[0], 255 * text_color[1], 255 * text_color[2], 255 * text_alpha);
 }
 void UI_TextColor(float r, float g, float b) {
   UI_TextColorEx(r, g, b, 1.0f);
@@ -273,12 +274,8 @@ void UI_TextColorEx(float r, float g, float b, float a) {
   text_color[1] = MIN(g, 1.0f);
   text_color[2] = MIN(b, 1.0f);
   text_alpha = a;
-#ifdef _arch_dreamcast
-  text_color_packed = PACK_BGRA8888(255 * text_color[2], 255 * text_color[1], 255 * text_color[0], 255 * text_alpha);
-#else
-  text_color_packed = PACK_ARGB8888(255 * text_alpha, 255 * text_color[0], 255 * text_color[1], 255 * text_color[2]);
-#endif
-  // glColor4f(r, g, b, a);
+
+  text_color_packed = PACK_COLOR(255 * text_color[0], 255 * text_color[1], 255 * text_color[2], 255 * text_alpha);
 }
 
 static inline void Draw_AlphaPic(int x, int y, tx_image *pic) {
@@ -422,7 +419,8 @@ void DrawQuad_NoTex(const dimen_RECT *_rect_pos) {
   float vertex[6 * 3] = {
       rect_pos->x, rect_pos->y + rect_pos->h, 0, rect_pos->x + rect_pos->w, rect_pos->y + rect_pos->h, 0, rect_pos->x + rect_pos->w, rect_pos->y, 0, rect_pos->x + rect_pos->w, rect_pos->y, 0, rect_pos->x, rect_pos->y, 0, rect_pos->x, rect_pos->y + rect_pos->h, 0};
 
-  unsigned int color_val = PACK_ARGB8888((uint8_t)(255 * text_alpha), (uint8_t)(255 * text_color[2]), (uint8_t)(255 * text_color[1]), (uint8_t)(255 * text_color[0]));
+
+  unsigned int color_val = PACK_COLOR(255 * text_color[0], 255 * text_color[1], 255 * text_color[2], 255 * text_alpha);
   unsigned int color_arr[6] = {color_val, color_val, color_val, color_val, color_val, color_val};
 
   glEnable(GL_BLEND);
@@ -452,8 +450,8 @@ void DrawQuad(const dimen_RECT *const _rect_pos, const dimen_FRECT *const rect_t
   float vertex[6 * 3] = {
       rect_pos->x, rect_pos->y + rect_pos->h, 0, rect_pos->x + rect_pos->w, rect_pos->y + rect_pos->h, 0, rect_pos->x + rect_pos->w, rect_pos->y, 0, rect_pos->x + rect_pos->w, rect_pos->y, 0, rect_pos->x, rect_pos->y, 0, rect_pos->x, rect_pos->y + rect_pos->h, 0};
   float texcoord[6 * 2] = {rect_tex->x, rect_tex->y + rect_tex->h, rect_tex->x + rect_tex->w, rect_tex->y + rect_tex->h, rect_tex->x + rect_tex->w, rect_tex->y, rect_tex->x + rect_tex->w, rect_tex->y, rect_tex->x, rect_tex->y, rect_tex->x, rect_tex->y + rect_tex->h};
-  unsigned int color_val = PACK_ARGB8888((uint8_t)(255 * text_alpha), (uint8_t)(255 * text_color[2]), (uint8_t)(255 * text_color[1]), (uint8_t)(255 * text_color[0]));
 
+  unsigned int color_val = PACK_COLOR(255 * text_color[0], 255 * text_color[1], 255 * text_color[2], 255 * text_alpha);
   unsigned int color_arr[6] = {color_val, color_val, color_val, color_val, color_val, color_val};
 
   glEnable(GL_BLEND);
@@ -482,8 +480,8 @@ void DrawQuad_RotEx(const dimen_RECT *const _rect_pos, const dimen_FRECT *const 
   float vertex[6 * 3] = {_rect_pos->x + r1x, _rect_pos->y + r1y, 0, _rect_pos->x + r2x, _rect_pos->y + r2y, 0, _rect_pos->x - r1x, _rect_pos->y - r1y, 0, _rect_pos->x - r1x, _rect_pos->y - r1y, 0, _rect_pos->x - r2x, _rect_pos->y - r2y, 0, _rect_pos->x + r1x, _rect_pos->y + r1y, 0};
 
   float texcoord[6 * 2] = {rect_tex->x, rect_tex->y + rect_tex->h, rect_tex->x + rect_tex->w, rect_tex->y + rect_tex->h, rect_tex->x + rect_tex->w, rect_tex->y, rect_tex->x + rect_tex->w, rect_tex->y, rect_tex->x, rect_tex->y, rect_tex->x, rect_tex->y + rect_tex->h};
-  unsigned int color_val = PACK_ARGB8888((uint8_t)(255 * text_alpha), (uint8_t)(255 * text_color[2]), (uint8_t)(255 * text_color[1]), (uint8_t)(255 * text_color[0]));
 
+  unsigned int color_val = PACK_COLOR(255 * text_color[0], 255 * text_color[1], 255 * text_color[2], 255 * text_alpha);
   unsigned int color_arr[6] = {color_val, color_val, color_val, color_val, color_val, color_val};
 
   glEnable(GL_BLEND);
