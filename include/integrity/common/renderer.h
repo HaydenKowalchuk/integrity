@@ -8,16 +8,16 @@
 #define WIDE_ASPECT (16.0f / 9.0f)
 #define SQUARE_ASPECT (4.0f / 3.0f)
 
-#ifdef _arch_dreamcast
-#include "GL/gl.h"
-#include "GL/glext.h"
-#include "GL/glkos.h"
-#include "GL/glu.h"
+#if defined(_arch_dreamcast)
+#include <GL/gl.h>
+#include <GL/glext.h>
+#include <GL/glkos.h>
+#include <GL/glu.h>
 #endif
 #if defined(__MINGW32__) || defined(__linux__) || defined(__APPLE__)
-#define GLFW_INCLUDE_GLU
-#include <GLFW/glfw3.h>
 #include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 #endif
 #if defined(__PSP__)
 #include <GL/gl.h>

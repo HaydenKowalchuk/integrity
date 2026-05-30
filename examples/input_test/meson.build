@@ -27,7 +27,9 @@ if opt_platform == 'psp'
       find_program('sh'),
       '-c', 'cd "'
       + exe_dir
-      + '" && mksfo "input_test" param.sfo && '
+      + '" && '
+      + mksfo.full_path()
+      + ' "input_test" param.sfo && '
       + 'psp-fixup-imports input_test && '
       + 'psp-prxgen input_test -o input_test.prx && '
       + 'pack-pbp EBOOT.PBP param.sfo NULL NULL NULL NULL NULL input_test.prx NULL',

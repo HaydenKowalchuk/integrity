@@ -100,7 +100,7 @@ if opt_platform == 'linux'
   platform_inc += include_directories('third-party/glad/include')
 
 elif opt_platform == 'macos'
-  arg_code += ['-DPLATFORM_MACOS', '-DDESKTOP']
+  arg_code += ['-DPLATFORM_MACOS', '-DDESKTOP', '-DGL_SILENCE_DEPRECATION']
   arg_base += ['-fdiagnostics-color']
 
   if opt_buildtype == 'debug'

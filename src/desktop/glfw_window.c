@@ -1,11 +1,15 @@
-#include <GLFW/glfw3.h>
-#include <desktop/glfw_input.h>
 #include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+#include <desktop/glfw_input.h>
 #include <integrity/common/common.h>
 #include <integrity/common/input.h>
 #include <integrity/common/renderer.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "../private.h"
 

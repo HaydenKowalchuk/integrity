@@ -1,4 +1,3 @@
-
 #include <integrity/common/common.h>
 #include <integrity/common/input.h>
 #include <integrity/scene/scene.h>
