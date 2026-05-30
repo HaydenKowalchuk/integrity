@@ -1,8 +1,6 @@
-#Hello example
-
 example_src = ['helloworld_scene.c']
 
-executable(
+example_hello_exe = executable(
   'hello',
   c_args: arg_c,
   link_args: arg_linker,
@@ -12,3 +10,5 @@ executable(
   link_with: gamejam_lib,
   install: true,
 )
+
+run_target('run_hello', command: [example_hello_exe])

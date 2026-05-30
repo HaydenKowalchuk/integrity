@@ -11,6 +11,7 @@ input_test_exe = executable(
   link_with: gamejam_lib,
   install: true,
 )
+run_target('run_input_test', command: [input_test_exe])
 
 #PSP post - processing
 if opt_platform == 'psp'
