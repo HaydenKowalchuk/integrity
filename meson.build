@@ -8,7 +8,6 @@ project(
 
 # Compiler arguments
 arg_base = [
-  '-Wshadow',
   '-Wstack-protector',
   '-Wno-strict-prototypes',
   '-Wno-missing-braces',
@@ -115,7 +114,12 @@ elif opt_platform == 'windows'
   platform_src += files('src/windows/sys_windows.c')
 
 elif opt_platform == 'dreamcast'
-  arg_code += ['-DPLATFORM_DREAMCAST', '-DBUILD_LIBGL', '-DMA_NO_THREADING']
+  arg_code += [
+    '-DPLATFORM_DREAMCAST',
+    '-DBUILD_LIBGL',
+    '-DMA_NO_RUNTIME_LINKING',
+    '-DMA_NO_THREADING',
+  ]
   arg_base += [
     '-mpretend-cmove',
     '-fsingle-precision-constant',

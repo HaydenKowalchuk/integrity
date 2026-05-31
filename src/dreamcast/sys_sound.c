@@ -25,14 +25,24 @@ static ma_device g_device;
 static int g_initialized = 0;
 
 static void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount) {
-  (void)pDevice;
   (void)pInput;
 
+  ma_format format = ma_device_get_format(pDevice, ma_device_type_playback);
+  ma_uint32 channels = ma_device_get_channels(pDevice, ma_device_type_playback);
+  ma_uint32 bpf = ma_get_bytes_per_frame(format, channels);
+
   if (current_sound.active) {
-    ma_decoder_read_pcm_frames(&current_sound.decoder, pOutput, frameCount, NULL);
-    ma_apply_volume_factor_pcm_frames(pOutput, frameCount, ma_format_s16, 2, 0.3f);
+    ma_uint64 framesRead = ma_decoder_read_pcm_frames(&current_sound.decoder, pOutput, frameCount, NULL);
+    if (framesRead < frameCount) {
+      memset((ma_uint8*)pOutput + framesRead * bpf, 0, (size_t)(frameCount - framesRead) * bpf);
+      if (framesRead == 0) {
+        ma_decoder_uninit(&current_sound.decoder);
+        current_sound.active = 0;
+      }
+    }
+    ma_apply_volume_factor_pcm_frames(pOutput, frameCount, format, channels, 0.3f);
   } else {
-    memset(pOutput, 0, (size_t)frameCount * 2 * sizeof(ma_int16));
+    memset(pOutput, 0, (size_t)frameCount * bpf);
   }
 }
 
@@ -51,12 +61,14 @@ int SYS_SND_Setup(void) {
   }
 
   ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
+  deviceConfig.threadingMode = MA_THREADING_MODE_SINGLE_THREADED;
   deviceConfig.playback.format = ma_format_s16;
   deviceConfig.playback.channels = 2;
   deviceConfig.sampleRate = 44100;
   deviceConfig.periodSizeInFrames = 2048;
   deviceConfig.noFixedSizedCallback = MA_TRUE;
   deviceConfig.dataCallback = data_callback;
+  deviceConfig.pUserData = NULL;
 
   result = ma_device_init(&g_context, &deviceConfig, &g_device);
   if (result != MA_SUCCESS) {
@@ -79,9 +91,7 @@ int SYS_SND_Setup(void) {
 }
 
 void SND_Update(void) {
-  fprintf(stdout, "SND_update()\n");
   if (g_initialized) {
-    fprintf(stdout, "SND_update() init\n");
     ma_device_step(&g_device, MA_BLOCKING_MODE_NON_BLOCKING);
   }
 }
@@ -104,16 +114,15 @@ int SYS_SND_Destroy(void) {
 int create_sound(unsigned int* source, const char* filename) {
   if (!source || !filename) return -1;
 
+  FILE* f = fopen(filename, "rb");
+  if (!f) return -1;
+  fclose(f);
+
   int slot = -1;
   for (int i = 0; i < MAX_SOUNDS; i++) {
     if (!sound_table[i].used) { slot = i; break; }
   }
   if (slot < 0) return -1;
-
-  ma_decoder_config cfg = ma_decoder_config_init(ma_format_s16, 2, 44100);
-  ma_decoder decoder;
-  if (ma_decoder_init_file(filename, &cfg, &decoder) != MA_SUCCESS) return -1;
-  ma_decoder_uninit(&decoder);
 
   strncpy(sound_table[slot].filename, filename, sizeof(sound_table[slot].filename) - 1);
   sound_table[slot].filename[sizeof(sound_table[slot].filename) - 1] = '\0';
