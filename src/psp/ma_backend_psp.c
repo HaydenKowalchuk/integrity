@@ -24,9 +24,13 @@ typedef struct ma_device_state_psp {
   ma_uint32 periodSizeInBytes;
   ma_uint32 periodSizeInFrames;
   void* pBufferRaw;
-  void* pBuffer;
+  void* pBuffers[2];
+  int    readIndex;
+  int    writeIndex;
+  volatile int running;
   SceUID threadId;
-  int    running;
+  SceUID slotSema;
+  SceUID bufSema;
 } ma_device_state_psp;
 
 static ma_device_state_psp* g_psp_audio_state;
@@ -77,12 +81,16 @@ static int audio_thread_func(SceSize args, void* argp) {
   (void)args;
   (void)argp;
   ma_device_state_psp* pState = g_psp_audio_state;
-  ma_device* pDevice = pState->pDevice;
+  if (!pState) return 0;
 
+  int readIdx = 0;
   while (pState->running) {
-    ma_device_handle_backend_data_callback(pDevice, pState->pBuffer, NULL, pState->periodSizeInFrames);
-    sceKernelDcacheWritebackInvalidateRange(pState->pBuffer, pState->periodSizeInBytes);
-    sceAudioSRCOutputBlocking(PSP_AUDIO_VOLUME_MAX, pState->pBuffer);
+    sceKernelWaitSema(pState->bufSema, 1, NULL);
+    if (!pState->running) break;
+
+    sceAudioSRCOutputBlocking(PSP_AUDIO_VOLUME_MAX, pState->pBuffers[readIdx]);
+    sceKernelSignalSema(pState->slotSema, 1);
+    readIdx = (readIdx + 1) & 1;
   }
   return 0;
 }
@@ -119,54 +127,28 @@ static ma_result ma_device_init__psp(ma_device* pDevice, const void* pDeviceBack
     return MA_OUT_OF_MEMORY;
   }
 
-  pDeviceStatePsp->pDevice             = pDevice;
-  pDeviceStatePsp->periodSizeInBytes   = periodSizeInBytes;
-  pDeviceStatePsp->periodSizeInFrames  = periodSizeInFrames;
-  pDeviceStatePsp->pBufferRaw = ma_malloc(periodSizeInBytes + 63, ma_device_get_allocation_callbacks(pDevice));
+  pDeviceStatePsp->pDevice            = pDevice;
+  pDeviceStatePsp->periodSizeInBytes  = periodSizeInBytes;
+  pDeviceStatePsp->periodSizeInFrames = periodSizeInFrames;
+  pDeviceStatePsp->readIndex          = 0;
+  pDeviceStatePsp->writeIndex         = 0;
+  pDeviceStatePsp->running            = 0;
+  pDeviceStatePsp->threadId           = 0;
+
+  size_t totalAlloc = (size_t)periodSizeInBytes * 2 + 64;
+  pDeviceStatePsp->pBufferRaw = ma_malloc(totalAlloc, ma_device_get_allocation_callbacks(pDevice));
   if (pDeviceStatePsp->pBufferRaw == NULL) {
     sceAudioSRCChRelease();
     ma_free(pDeviceStatePsp, ma_device_get_allocation_callbacks(pDevice));
     return MA_OUT_OF_MEMORY;
   }
-  pDeviceStatePsp->pBuffer = (void*)(((uintptr_t)pDeviceStatePsp->pBufferRaw + 63) & ~(uintptr_t)63);
-  pDeviceStatePsp->running = 0;
-  pDeviceStatePsp->threadId = 0;
+  uintptr_t addr = (uintptr_t)pDeviceStatePsp->pBufferRaw;
+  uintptr_t aligned = (addr + 63) & ~(uintptr_t)63;
+  pDeviceStatePsp->pBuffers[0] = (void*)aligned;
+  pDeviceStatePsp->pBuffers[1] = (void*)(aligned + periodSizeInBytes);
 
-  g_psp_audio_state = NULL;
-
-  *ppDeviceState = pDeviceStatePsp;
-
-  pDescriptorPlayback->format = ma_format_s16;
-  pDescriptorPlayback->channels = 2;
-  pDescriptorPlayback->sampleRate = 44100;
-  pDescriptorPlayback->periodSizeInFrames = periodSizeInFrames;
-  pDescriptorPlayback->periodCount = 1;
-  fprintf(stdout, "[audio] backend set desc ps=%u fmt=%d ch=%u sr=%u\n", pDescriptorPlayback->periodSizeInFrames, pDescriptorPlayback->format, pDescriptorPlayback->channels, pDescriptorPlayback->sampleRate);
-  return MA_SUCCESS;
-}
-
-static void ma_device_uninit__psp(ma_device* pDevice) {
-  ma_device_state_psp* pDeviceStatePsp = ma_device_get_backend_state__psp(pDevice);
-
-  if (pDeviceStatePsp->running) {
-    pDeviceStatePsp->running = 0;
-    if (pDeviceStatePsp->threadId > 0) {
-      sceKernelWaitThreadEnd(pDeviceStatePsp->threadId, NULL);
-      sceKernelDeleteThread(pDeviceStatePsp->threadId);
-    }
-  }
-
-  while (sceAudioOutput2GetRestSample() > 0)
-    sceKernelDelayThread(1000);
-  sceAudioSRCChRelease();
-  ma_free(pDeviceStatePsp->pBufferRaw, ma_device_get_allocation_callbacks(pDevice));
-  ma_free(pDeviceStatePsp, ma_device_get_allocation_callbacks(pDevice));
-
-  g_psp_audio_state = NULL;
-}
-
-static ma_result ma_device_start__psp(ma_device* pDevice) {
-  ma_device_state_psp* pDeviceStatePsp = ma_device_get_backend_state__psp(pDevice);
+  pDeviceStatePsp->slotSema = sceKernelCreateSema("audio_slot", 0, 2, 2, NULL);
+  pDeviceStatePsp->bufSema  = sceKernelCreateSema("audio_buf",  0, 0, 2, NULL);
 
   g_psp_audio_state = pDeviceStatePsp;
 
@@ -176,31 +158,72 @@ static ma_result ma_device_start__psp(ma_device* pDevice) {
   if (pDeviceStatePsp->threadId < 0) {
     pDeviceStatePsp->running = 0;
     g_psp_audio_state = NULL;
+    sceKernelDeleteSema(pDeviceStatePsp->slotSema);
+    sceKernelDeleteSema(pDeviceStatePsp->bufSema);
+    sceAudioSRCChRelease();
+    ma_free(pDeviceStatePsp->pBufferRaw, ma_device_get_allocation_callbacks(pDevice));
+    ma_free(pDeviceStatePsp, ma_device_get_allocation_callbacks(pDevice));
     return MA_ERROR;
   }
   sceKernelStartThread(pDeviceStatePsp->threadId, 0, NULL);
+
+  *ppDeviceState = pDeviceStatePsp;
+
+  pDescriptorPlayback->format = ma_format_s16;
+  pDescriptorPlayback->channels = 2;
+  pDescriptorPlayback->sampleRate = 44100;
+  pDescriptorPlayback->periodSizeInFrames = periodSizeInFrames;
+  pDescriptorPlayback->periodCount = 2;
+  fprintf(stdout, "[audio] backend set desc ps=%u fmt=%d ch=%u sr=%u\n", pDescriptorPlayback->periodSizeInFrames, pDescriptorPlayback->format, pDescriptorPlayback->channels, pDescriptorPlayback->sampleRate);
   return MA_SUCCESS;
 }
 
-static ma_result ma_device_stop__psp(ma_device* pDevice) {
+static void ma_device_uninit__psp(ma_device* pDevice) {
   ma_device_state_psp* pDeviceStatePsp = ma_device_get_backend_state__psp(pDevice);
 
   if (pDeviceStatePsp->running) {
     pDeviceStatePsp->running = 0;
-    if (pDeviceStatePsp->threadId > 0) {
-      sceKernelWaitThreadEnd(pDeviceStatePsp->threadId, NULL);
-      sceKernelDeleteThread(pDeviceStatePsp->threadId);
-    }
-    pDeviceStatePsp->threadId = 0;
+    sceKernelSignalSema(pDeviceStatePsp->bufSema, 1);
+    sceKernelWaitThreadEnd(pDeviceStatePsp->threadId, NULL);
+    sceKernelDeleteThread(pDeviceStatePsp->threadId);
   }
 
-  g_psp_audio_state = NULL;
+  sceKernelDeleteSema(pDeviceStatePsp->slotSema);
+  sceKernelDeleteSema(pDeviceStatePsp->bufSema);
+
+  while (sceAudioOutput2GetRestSample() > 0)
+    sceKernelDelayThread(1000);
+  sceAudioSRCChRelease();
+  ma_free(pDeviceStatePsp->pBufferRaw, ma_device_get_allocation_callbacks(pDevice));
+  ma_free(pDeviceStatePsp, ma_device_get_allocation_callbacks(pDevice));
+}
+
+static ma_result ma_device_start__psp(ma_device* pDevice) {
+  ma_device_state_psp* pDeviceStatePsp = ma_device_get_backend_state__psp(pDevice);
+
+  pDeviceStatePsp->readIndex  = 0;
+  pDeviceStatePsp->writeIndex = 0;
+
+  return MA_SUCCESS;
+}
+
+static ma_result ma_device_stop__psp(ma_device* pDevice) {
+  (void)pDevice;
   return MA_SUCCESS;
 }
 
 static ma_result ma_device_step__psp(ma_device* pDevice, ma_blocking_mode blockingMode) {
-  (void)pDevice;
   (void)blockingMode;
+  ma_device_state_psp* pDeviceStatePsp = ma_device_get_backend_state__psp(pDevice);
+
+  if (sceKernelPollSema(pDeviceStatePsp->slotSema, 1) == 0) {
+    int idx = pDeviceStatePsp->writeIndex;
+    ma_device_handle_backend_data_callback(pDevice, pDeviceStatePsp->pBuffers[idx], NULL, pDeviceStatePsp->periodSizeInFrames);
+    sceKernelDcacheWritebackInvalidateRange(pDeviceStatePsp->pBuffers[idx], pDeviceStatePsp->periodSizeInBytes);
+    pDeviceStatePsp->writeIndex = (idx + 1) & 1;
+    sceKernelSignalSema(pDeviceStatePsp->bufSema, 1);
+  }
+
   return MA_SUCCESS;
 }
 

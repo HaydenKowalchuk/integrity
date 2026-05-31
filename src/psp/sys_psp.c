@@ -271,7 +271,7 @@ int main(int argc, char** argv) {
     frame_count++;
     eglSwapBuffers(dpy, surface);
 
-    //SND_Update();
+    SND_Update();
   }
   SYS_SND_Destroy();
   sceKernelExitGame();

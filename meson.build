@@ -158,7 +158,7 @@ elif opt_platform == 'dreamcast'
   )
 
 elif opt_platform == 'psp'
-  arg_code += ['-DPLATFORM_PSP', '-DMA_SUPPORT_PSP', '-DMA_NO_THREADING', '-DMA_NO_RUNTIME_LINKING']
+  arg_code += ['-DPLATFORM_PSP', '-DMA_SUPPORT_PSP', '-DMA_NO_RUNTIME_LINKING']
   arg_base += [
     '-fsingle-precision-constant',
     '-ffast-math',
