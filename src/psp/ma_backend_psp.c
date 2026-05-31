@@ -1,241 +1,244 @@
-/*
- * miniaudio custom backend for PlayStation Portable (PSP)
- *
- * Implements ma_backend_callbacks using the PSP SDK's sceAudio functions.
- * The PSP audio hardware provides:
- *   - Fixed 16-bit signed PCM (s16) format
- *   - 44100 Hz native sample rate (or SRC for other rates)
- *   - Up to 8 hardware channels (stereo or mono)
- *   - Double-buffered blocking output
- */
-
+#include <math.h>
 #include <miniaudio.h>
-#include <pspaudio.h>
+#include <stdio.h>
 #include <string.h>
 
-#define MA_PSP_NUM_BUFFERS 2
-#define MA_PSP_DEFAULT_PERIOD_SIZE 512
-#define MA_PSP_DEFAULT_CHANNELS 2
-#define MA_PSP_DEFAULT_SAMPLE_RATE 44100
+#if defined(__psp__) || defined(PSP)
+#define MA_PSP
+#endif
 
-typedef struct {
-  ma_context context;
-  int channel;
-} ma_context_psp;
+#if defined(MA_PSP)
+#include <pspaudio.h>
+#include <pspthreadman.h>
+#include <psputils.h>
 
-typedef struct {
-  ma_device device;
-  int ch;
+#define PSP_AUDIO_SRC_MIN_PERIOD 17
+#define PSP_AUDIO_SRC_MAX_PERIOD 4111
+
+typedef struct ma_context_state_psp {
+  int _unused;
+} ma_context_state_psp;
+
+typedef struct ma_device_state_psp {
+  ma_uint32 periodSizeInBytes;
   ma_uint32 periodSizeInFrames;
-  ma_uint32 channels;
-  ma_uint32 sampleRate;
-  ma_uint8** ppBuffers;
-  ma_uint32 currentBuffer;
-  ma_bool32 isStarted;
-} ma_device_psp;
+  void* pBufferRaw; /* base allocation (for free) */
+  void* pBuffer;    /* 64-byte aligned pointer (for hardware) */
+  SceUID threadId;
+  int    running;
+} ma_device_state_psp;
 
-static ma_result ma_context_on_uninit__psp(ma_context* pContext) {
-  ma_context_psp* pContextPSP = (ma_context_psp*)pContext;
+static ma_context_state_psp* ma_context_get_backend_state__psp(ma_context* pContext) {
+  return (ma_context_state_psp*)ma_context_get_backend_state(pContext);
+}
 
-  if (pContextPSP->channel >= 0) {
-    sceAudioChRelease(pContextPSP->channel);
-    pContextPSP->channel = -1;
-  }
+static ma_device_state_psp* ma_device_get_backend_state__psp(ma_device* pDevice) {
+  return (ma_device_state_psp*)ma_device_get_backend_state(pDevice);
+}
 
+static void ma_backend_info__psp(ma_device_backend_info* pBackendInfo) {
+  pBackendInfo->pName = "PlayStation Portable";
+}
+
+static ma_result ma_context_init__psp(ma_context* pContext, const void* pContextBackendConfig, void** ppContextState) {
+  ma_context_state_psp* pContextStatePsp =
+      (ma_context_state_psp*)ma_calloc(sizeof(*pContextStatePsp),
+                                       ma_context_get_allocation_callbacks(pContext));
+  if (pContextStatePsp == NULL) return MA_OUT_OF_MEMORY;
+  (void)pContextBackendConfig;
+  *ppContextState = pContextStatePsp;
   return MA_SUCCESS;
 }
 
-static ma_result ma_context_on_enumerate_devices__psp(ma_context* pContext, ma_enum_devices_callback_proc callback, void* pUserData) {
+static void ma_context_uninit__psp(ma_context* pContext) {
+  ma_context_state_psp* pContextStatePsp = ma_context_get_backend_state__psp(pContext);
+  ma_free(pContextStatePsp, ma_context_get_allocation_callbacks(pContext));
+}
+
+static ma_result ma_context_enumerate_devices__psp(ma_context* pContext,
+                                                   ma_enum_devices_callback_proc callback,
+                                                   void* pCallbackUserData) {
   ma_device_info deviceInfo;
   (void)pContext;
-
   memset(&deviceInfo, 0, sizeof(deviceInfo));
   deviceInfo.isDefault = MA_TRUE;
-  strncpy(deviceInfo.name, "PSP Audio Device", sizeof(deviceInfo.name) - 1);
   deviceInfo.id.custom.i = 0;
-
-  if (!callback(pContext, ma_device_type_playback, &deviceInfo, pUserData)) {
-    return MA_CANCELLED;
-  }
-
+  ma_strncpy_s(deviceInfo.name, sizeof(deviceInfo.name), "Default Playback Device", (size_t)-1);
+  ma_device_info_add_native_data_format(&deviceInfo, ma_format_s16, 2, 2, 44100, 44100);
+  if (callback(ma_device_type_playback, &deviceInfo, pCallbackUserData) == MA_DEVICE_ENUMERATION_ABORT)
+    return MA_SUCCESS;
   return MA_SUCCESS;
 }
 
-static ma_result ma_context_on_get_device_info__psp(ma_context* pContext, ma_device_type deviceType, const ma_device_id* pDeviceID, ma_device_info* pDeviceInfo) {
-  (void)pContext;
-  (void)pDeviceID;
+static int audio_thread_func(SceSize args, void* argp) {
+  (void)args;
+  ma_device* pDevice = *(ma_device**)argp;
+  ma_device_state_psp* pState = ma_device_get_backend_state__psp(pDevice);
 
-  if (deviceType != ma_device_type_playback) {
-    return MA_NO_DEVICE;
+  while (pState->running) {
+    ma_device_handle_backend_data_callback(pDevice, pState->pBuffer, NULL, pState->periodSizeInFrames);
+    sceKernelDcacheWritebackInvalidateRange(pState->pBuffer, pState->periodSizeInBytes);
+    sceAudioSRCOutputBlocking(PSP_AUDIO_VOLUME_MAX, pState->pBuffer);
   }
-
-  memset(pDeviceInfo, 0, sizeof(*pDeviceInfo));
-  pDeviceInfo->isDefault = MA_TRUE;
-  strncpy(pDeviceInfo->name, "PSP Audio Device", sizeof(pDeviceInfo->name) - 1);
-  pDeviceInfo->id.custom.i = 0;
-
-  pDeviceInfo->nativeDataFormatCount = 1;
-  pDeviceInfo->nativeDataFormats[0].format = ma_format_s16;
-  pDeviceInfo->nativeDataFormats[0].channels = 2;
-  pDeviceInfo->nativeDataFormats[0].sampleRate = MA_PSP_DEFAULT_SAMPLE_RATE;
-  pDeviceInfo->nativeDataFormats[0].flags = 0;
-
-  return MA_SUCCESS;
+  return 0;
 }
 
-static ma_result ma_device_on_init__psp(ma_device* pDevice, const ma_device_config* pConfig, ma_device_descriptor* pDescriptorPlayback, ma_device_descriptor* pDescriptorCapture) {
-  ma_device_psp* pDevicePSP = (ma_device_psp*)pDevice;
-  ma_context_psp* pContextPSP = (ma_context_psp*)pDevice->pContext;
-  int format;
-  int sampleCount;
-  int ch;
+static ma_result ma_device_init__psp(ma_device* pDevice, const void* pDeviceBackendConfig, ma_device_descriptor* pDescriptorPlayback, ma_device_descriptor* pDescriptorCapture, void** ppDeviceState) {
+  ma_device_state_psp* pDeviceStatePsp;
+  ma_log* pLog = ma_device_get_log(pDevice);
+  ma_uint32 periodSizeInFrames, periodSizeInBytes;
+
+  (void)pDeviceBackendConfig;
   (void)pDescriptorCapture;
+  if (ma_device_get_type(pDevice) != ma_device_type_playback)
+    return MA_DEVICE_TYPE_NOT_SUPPORTED;
 
-  if (pConfig->deviceType == ma_device_type_capture || pConfig->deviceType == ma_device_type_duplex) {
-    return MA_NO_DEVICE;
+  while (sceAudioOutput2GetRestSample() > 0)
+    sceKernelDelayThread(1000);
+  sceAudioSRCChRelease();
+
+  periodSizeInFrames = ma_calculate_buffer_size_in_frames_from_descriptor(pDescriptorPlayback, 44100);
+  periodSizeInFrames = ma_clamp(periodSizeInFrames, PSP_AUDIO_SRC_MIN_PERIOD, PSP_AUDIO_SRC_MAX_PERIOD);
+  periodSizeInBytes = periodSizeInFrames * ma_get_bytes_per_frame(ma_format_s16, 2);
+  fprintf(stdout, "[audio] pdev init: period=%u frames, %u bytes\n", periodSizeInFrames, periodSizeInBytes);
+
+  fprintf(stdout, "[audio] Reserving SRC: samples=%u freq=44100\n", (unsigned)periodSizeInFrames);
+  if (sceAudioSRCChReserve((int)periodSizeInFrames, 44100, 2) < 0) {
+    ma_log_postf(pLog, MA_LOG_LEVEL_ERROR, "[PSP] sceAudioSRCChReserve failed.");
+    return MA_ERROR;
   }
 
-  pDevicePSP->sampleRate = (pConfig->sampleRate != 0) ? pConfig->sampleRate : MA_PSP_DEFAULT_SAMPLE_RATE;
-  pDevicePSP->channels = (pConfig->playback.channels != 0) ? pConfig->playback.channels : MA_PSP_DEFAULT_CHANNELS;
-
-  if (pConfig->periodSizeInFrames != 0) {
-    pDevicePSP->periodSizeInFrames = pConfig->periodSizeInFrames;
-  } else if (pConfig->periodSizeInMilliseconds != 0) {
-    pDevicePSP->periodSizeInFrames = (ma_uint32)(pConfig->periodSizeInMilliseconds * pDevicePSP->sampleRate / 1000);
-  } else {
-    pDevicePSP->periodSizeInFrames = MA_PSP_DEFAULT_PERIOD_SIZE;
-  }
-
-  sampleCount = (int)PSP_AUDIO_SAMPLE_ALIGN(pDevicePSP->periodSizeInFrames);
-  if (sampleCount < PSP_AUDIO_SAMPLE_MIN || sampleCount > PSP_AUDIO_SAMPLE_MAX) {
-    sampleCount = MA_PSP_DEFAULT_PERIOD_SIZE;
-  }
-
-  format = (pDevicePSP->channels == 1) ? PSP_AUDIO_FORMAT_MONO : PSP_AUDIO_FORMAT_STEREO;
-
-  ch = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, sampleCount, format);
-  if (ch < 0) {
-    return MA_FAILED_TO_OPEN_BACKEND_DEVICE;
-  }
-
-  pDevicePSP->ch = ch;
-
-  pDevicePSP->ppBuffers = (ma_uint8**)ma_malloc(sizeof(ma_uint8*) * MA_PSP_NUM_BUFFERS, &pDevice->pContext->allocationCallbacks);
-  if (pDevicePSP->ppBuffers == NULL) {
-    sceAudioChRelease(ch);
+  pDeviceStatePsp = (ma_device_state_psp*)ma_calloc(sizeof(*pDeviceStatePsp),
+                                                    ma_device_get_allocation_callbacks(pDevice));
+  if (pDeviceStatePsp == NULL) {
+    sceAudioSRCChRelease();
     return MA_OUT_OF_MEMORY;
   }
 
-  for (ma_uint32 i = 0; i < MA_PSP_NUM_BUFFERS; i++) {
-    pDevicePSP->ppBuffers[i] = (ma_uint8*)ma_malloc(sampleCount * pDevicePSP->channels * sizeof(ma_int16), &pDevice->pContext->allocationCallbacks);
-    if (pDevicePSP->ppBuffers[i] == NULL) {
-      for (ma_uint32 j = 0; j < i; j++) {
-        ma_free(pDevicePSP->ppBuffers[j], &pDevice->pContext->allocationCallbacks);
-      }
-      ma_free(pDevicePSP->ppBuffers, &pDevice->pContext->allocationCallbacks);
-      sceAudioChRelease(ch);
-      return MA_OUT_OF_MEMORY;
-    }
+  pDeviceStatePsp->periodSizeInBytes  = periodSizeInBytes;
+  pDeviceStatePsp->periodSizeInFrames = periodSizeInFrames;
+  pDeviceStatePsp->pBufferRaw = ma_malloc(periodSizeInBytes + 63, ma_device_get_allocation_callbacks(pDevice));
+  if (pDeviceStatePsp->pBufferRaw == NULL) {
+    sceAudioSRCChRelease();
+    ma_free(pDeviceStatePsp, ma_device_get_allocation_callbacks(pDevice));
+    return MA_OUT_OF_MEMORY;
   }
+  pDeviceStatePsp->pBuffer = (void*)(((uintptr_t)pDeviceStatePsp->pBufferRaw + 63) & ~(uintptr_t)63);
+  pDeviceStatePsp->running = 0;
+  pDeviceStatePsp->threadId = 0;
 
-  pDevicePSP->currentBuffer = 0;
-  pDevicePSP->isStarted = MA_FALSE;
+  *ppDeviceState = pDeviceStatePsp;
 
-  if (pDescriptorPlayback != NULL) {
-    pDescriptorPlayback->channels = pDevicePSP->channels;
-    pDescriptorPlayback->sampleRate = pDevicePSP->sampleRate;
-    pDescriptorPlayback->format = ma_format_s16;
-    memset(pDescriptorPlayback->channelMap, 0, sizeof(pDescriptorPlayback->channelMap));
-    pDescriptorPlayback->periodSizeInFrames = pDevicePSP->periodSizeInFrames;
-    pDescriptorPlayback->periodCount = MA_PSP_NUM_BUFFERS;
-  }
-
+  pDescriptorPlayback->format = ma_format_s16;
+  pDescriptorPlayback->channels = 2;
+  pDescriptorPlayback->sampleRate = 44100;
+  pDescriptorPlayback->periodSizeInFrames = periodSizeInFrames;
+  pDescriptorPlayback->periodCount = 1;
+  fprintf(stdout, "[audio] backend set desc ps=%u fmt=%d ch=%u sr=%u\n", pDescriptorPlayback->periodSizeInFrames, pDescriptorPlayback->format, pDescriptorPlayback->channels, pDescriptorPlayback->sampleRate);
   return MA_SUCCESS;
 }
 
-static ma_result ma_device_on_uninit__psp(ma_device* pDevice) {
-  ma_device_psp* pDevicePSP = (ma_device_psp*)pDevice;
+static void ma_device_uninit__psp(ma_device* pDevice) {
+  ma_device_state_psp* pDeviceStatePsp = ma_device_get_backend_state__psp(pDevice);
 
-  pDevicePSP->isStarted = MA_FALSE;
-
-  if (pDevicePSP->ch >= 0) {
-    sceAudioChRelease(pDevicePSP->ch);
-    pDevicePSP->ch = -1;
+  if (pDeviceStatePsp->running) {
+    pDeviceStatePsp->running = 0;
+    sceKernelWaitThreadEnd(pDeviceStatePsp->threadId, NULL);
+    sceKernelDeleteThread(pDeviceStatePsp->threadId);
   }
 
-  if (pDevicePSP->ppBuffers != NULL) {
-    for (ma_uint32 i = 0; i < MA_PSP_NUM_BUFFERS; i++) {
-      if (pDevicePSP->ppBuffers[i] != NULL) {
-        ma_free(pDevicePSP->ppBuffers[i], &pDevice->pContext->allocationCallbacks);
-      }
-    }
-    ma_free(pDevicePSP->ppBuffers, &pDevice->pContext->allocationCallbacks);
-    pDevicePSP->ppBuffers = NULL;
+  while (sceAudioOutput2GetRestSample() > 0)
+    sceKernelDelayThread(1000);
+  sceAudioSRCChRelease();
+  ma_free(pDeviceStatePsp->pBufferRaw, ma_device_get_allocation_callbacks(pDevice));
+  ma_free(pDeviceStatePsp, ma_device_get_allocation_callbacks(pDevice));
+}
+
+static ma_result ma_device_start__psp(ma_device* pDevice) {
+  ma_device_state_psp* pDeviceStatePsp = ma_device_get_backend_state__psp(pDevice);
+
+  pDeviceStatePsp->running = 1;
+  pDeviceStatePsp->threadId = sceKernelCreateThread("audio_thread", audio_thread_func,
+      0x10, 0x4000, PSP_THREAD_ATTR_USER, 0);
+  if (pDeviceStatePsp->threadId < 0) {
+    pDeviceStatePsp->running = 0;
+    return MA_ERROR;
   }
-
+  sceKernelStartThread(pDeviceStatePsp->threadId, sizeof(pDevice), &pDevice);
   return MA_SUCCESS;
 }
 
-static ma_result ma_device_on_start__psp(ma_device* pDevice) {
-  ma_device_psp* pDevicePSP = (ma_device_psp*)pDevice;
-  pDevicePSP->isStarted = MA_TRUE;
-  return MA_SUCCESS;
-}
+static ma_result ma_device_stop__psp(ma_device* pDevice) {
+  ma_device_state_psp* pDeviceStatePsp = ma_device_get_backend_state__psp(pDevice);
 
-static ma_result ma_device_on_stop__psp(ma_device* pDevice) {
-  ma_device_psp* pDevicePSP = (ma_device_psp*)pDevice;
-  pDevicePSP->isStarted = MA_FALSE;
-  return MA_SUCCESS;
-}
-
-static ma_result ma_device_on_data_loop__psp(ma_device* pDevice) {
-  ma_device_psp* pDevicePSP = (ma_device_psp*)pDevice;
-  ma_uint32 bufferSizeInFrames = pDevicePSP->periodSizeInFrames;
-
-  while (pDevicePSP->isStarted) {
-    ma_uint8* pBuffer = pDevicePSP->ppBuffers[pDevicePSP->currentBuffer];
-    ma_result result;
-
-    result = ma_device_handle_backend_data_callback(pDevice, pBuffer, NULL, bufferSizeInFrames);
-    if (result != MA_SUCCESS) {
-      break;
-    }
-
-    if (pDevicePSP->channels == 2) {
-      sceAudioOutputPannedBlocking(pDevicePSP->ch, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, pBuffer);
-    } else {
-      sceAudioOutputBlocking(pDevicePSP->ch, PSP_AUDIO_VOLUME_MAX, pBuffer);
-    }
-
-    pDevicePSP->currentBuffer = (pDevicePSP->currentBuffer + 1) % MA_PSP_NUM_BUFFERS;
+  if (pDeviceStatePsp->running) {
+    pDeviceStatePsp->running = 0;
+    sceKernelWaitThreadEnd(pDeviceStatePsp->threadId, NULL);
+    sceKernelDeleteThread(pDeviceStatePsp->threadId);
+    pDeviceStatePsp->threadId = 0;
   }
-
   return MA_SUCCESS;
 }
 
-static ma_result ma_device_on_data_loop_wakeup__psp(ma_device* pDevice) {
+static ma_result ma_device_step__psp(ma_device* pDevice, ma_blocking_mode blockingMode) {
   (void)pDevice;
+  (void)blockingMode;
   return MA_SUCCESS;
 }
 
-ma_result ma_context_on_init__psp(ma_context* pContext, const ma_context_config* pConfig, ma_backend_callbacks* pCallbacks) {
-  ma_context_psp* pContextPSP = (ma_context_psp*)pContext;
-  (void)pConfig;
-
-  pContextPSP->channel = -1;
-
-  pCallbacks->onContextUninit = ma_context_on_uninit__psp;
-  pCallbacks->onContextEnumerateDevices = ma_context_on_enumerate_devices__psp;
-  pCallbacks->onContextGetDeviceInfo = ma_context_on_get_device_info__psp;
-  pCallbacks->onDeviceInit = ma_device_on_init__psp;
-  pCallbacks->onDeviceUninit = ma_device_on_uninit__psp;
-  pCallbacks->onDeviceStart = ma_device_on_start__psp;
-  pCallbacks->onDeviceStop = ma_device_on_stop__psp;
-  pCallbacks->onDeviceRead = NULL;
-  pCallbacks->onDeviceWrite = NULL;
-  pCallbacks->onDeviceDataLoop = ma_device_on_data_loop__psp;
-  pCallbacks->onDeviceDataLoopWakeup = ma_device_on_data_loop_wakeup__psp;
-  pCallbacks->onDeviceGetInfo = NULL;
-
-  return MA_SUCCESS;
+static void ma_device_wakeup__psp(ma_device* pDevice) {
+  (void)pDevice;
 }
+
+static ma_device_backend_vtable ma_gDeviceBackendVTable_Psp =
+    {
+        ma_backend_info__psp,
+        ma_context_init__psp,
+        ma_context_uninit__psp,
+        ma_context_enumerate_devices__psp,
+        ma_device_init__psp,
+        ma_device_uninit__psp,
+        ma_device_start__psp,
+        ma_device_stop__psp,
+        ma_device_step__psp,
+        ma_device_wakeup__psp};
+
+ma_device_backend_vtable* ma_device_backend_psp = &ma_gDeviceBackendVTable_Psp;
+
+MA_API ma_device_backend_vtable* ma_psp_get_vtable(void) {
+  return ma_device_backend_psp;
+}
+
+MA_API ma_context_config_psp ma_context_config_psp_init(void) {
+  ma_context_config_psp config;
+  memset(&config, 0, sizeof(config));
+  return config;
+}
+
+MA_API ma_device_config_psp ma_device_config_psp_init(void) {
+  ma_device_config_psp config;
+  memset(&config, 0, sizeof(config));
+  return config;
+}
+
+#else /* !MA_PSP */
+
+ma_device_backend_vtable* ma_device_backend_psp = NULL;
+
+MA_API ma_device_backend_vtable* ma_psp_get_vtable(void) {
+  return NULL;
+}
+
+MA_API ma_context_config_psp ma_context_config_psp_init(void) {
+  ma_context_config_psp config;
+  memset(&config, 0, sizeof(config));
+  return config;
+}
+
+MA_API ma_device_config_psp ma_device_config_psp_init(void) {
+  ma_device_config_psp config;
+  memset(&config, 0, sizeof(config));
+  return config;
+}
+
+#endif /* MA_PSP */

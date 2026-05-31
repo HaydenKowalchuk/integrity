@@ -58,6 +58,7 @@ src_files += files('src/common/util.c')
 src_files += files('src/common/file_access.c')
 src_files += files('src/common/main.c')
 src_files += files('src/scene/scene.c')
+src_files += files('src/psp/ma_backend_psp.c')
 src_files += files('src/scene/null_scene.c')
 src_files += files('src/ui/gl_batcher.c')
 src_files += files('src/ui/ui_backend.c')
@@ -89,11 +90,6 @@ if opt_platform in ['linux', 'macos', 'windows']
   miniaudio_dep = dependency(
     'miniaudio',
     fallback: ['miniaudio', 'ma_dep'],
-    default_options: [
-      'examples=disabled',
-      'tests=disabled',
-      'tools=disabled',
-    ],
   )
 
   platform_dep += [glfw_dep, miniaudio_dep]
@@ -119,7 +115,7 @@ elif opt_platform == 'windows'
   platform_src += files('src/windows/sys_windows.c')
 
 elif opt_platform == 'dreamcast'
-  arg_code += ['-DPLATFORM_DREAMCAST', '-DBUILD_LIBGL']
+  arg_code += ['-DPLATFORM_DREAMCAST', '-DBUILD_LIBGL', '-DMA_NO_THREADING']
   arg_base += [
     '-mpretend-cmove',
     '-fsingle-precision-constant',
@@ -144,8 +140,12 @@ elif opt_platform == 'dreamcast'
 
   gldc_dep = dependency('gldc', fallback: ['gldc', 'libgldc_dep'])
   crayonvmu_dep = dependency('crayonvmu', fallback: ['crayonvmu', 'libcrayonvmu_dep'])
+  miniaudio_dep = dependency(
+    'miniaudio',
+    fallback: ['miniaudio', 'ma_dep'],
+  )
 
-  platform_dep += [gldc_dep, crayonvmu_dep]
+  platform_dep += [gldc_dep, crayonvmu_dep, miniaudio_dep]
   platform_src += files(
     'src/dreamcast/perfctr.c',
     'src/dreamcast/sys_dreamcast.c',
@@ -158,7 +158,7 @@ elif opt_platform == 'dreamcast'
   )
 
 elif opt_platform == 'psp'
-  arg_code += ['-DPLATFORM_PSP']
+  arg_code += ['-DPLATFORM_PSP', '-DMA_SUPPORT_PSP', '-DMA_NO_THREADING', '-DMA_NO_RUNTIME_LINKING']
   arg_base += [
     '-fsingle-precision-constant',
     '-ffast-math',
@@ -201,19 +201,6 @@ elif opt_platform == 'psp'
   miniaudio_dep = dependency(
     'miniaudio',
     fallback: ['miniaudio', 'ma_dep'],
-    default_options: [
-      'b_staticpic=false',
-      'backends=',
-      'runtime_linking=disabled',
-      'device_io=disabled',
-      'engine=false',
-      'generation=false',
-      'libvorbis=disabled',
-      'libopus=disabled',
-      'examples=disabled',
-      'tests=disabled',
-      'tools=disabled',
-    ],
   )
 
   platform_dep += [pspgl_dep, miniaudio_dep]

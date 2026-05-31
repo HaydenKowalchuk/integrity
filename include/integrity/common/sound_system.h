@@ -11,11 +11,12 @@
 #define SOUND (1)
 #endif
 #if defined(_arch_dreamcast)
-/* Not yet */
+#define SOUND (1)
 #endif
 
 int SYS_SND_Setup(void);
 int SYS_SND_Destroy(void);
+void SND_Update(void);
 
 void SND_Play(unsigned int source);
 int create_sound(unsigned int* source, const char* filename);

@@ -1,228 +1,145 @@
-/*
- * OpenAL example
- *
- * Copyright(C) Florian Fainelli <f.fainelli@gmail.com>
- */
-
 #include <integrity/common/sound_system.h>
-
-#if SOUND
-#include <AL/al.h>
-#include <AL/alc.h>
-#else
-typedef unsigned int ALuint;
-#endif
-
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #if SOUND
-#define WAVLOAD
+#include <miniaudio.h>
 
-#ifdef LIBAUDIO
-#include <audio/wave.h>
-#define BACKEND "libaudio"
-#elif defined(WAVLOAD)
-#include <integrity/common/snd_wavload.h>
-#define BACKEND "wavload"
-#else
-#include <AL/alut.h>
-#define BACKEND "alut"
-#endif
+#define MAX_SOUNDS 64
 
-static void list_audio_devices(const ALCchar* devices) {
-  const ALCchar *device = devices, *next = devices + 1;
-  size_t len = 0;
+typedef struct {
+  char filename[256];
+  int used;
+} sound_slot;
 
-  fprintf(stdout, "Devices list:\n");
-  fprintf(stdout, "----------\n");
-  while (device && *device != '\0' && next && *next != '\0') {
-    fprintf(stdout, "%s\n", device);
-    len = strlen(device);
-    device += (len + 1);
-    next += (len + 2);
+static sound_slot sound_table[MAX_SOUNDS];
+
+static struct {
+  ma_decoder decoder;
+  int active;
+} current_sound;
+
+static ma_context g_context;
+static ma_device g_device;
+static int g_initialized = 0;
+
+static void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount) {
+  (void)pDevice;
+  (void)pInput;
+
+  if (current_sound.active) {
+    ma_decoder_read_pcm_frames(&current_sound.decoder, pOutput, frameCount, NULL);
+    ma_apply_volume_factor_pcm_frames(pOutput, frameCount, ma_format_s16, 2, 0.3f);
+  } else {
+    memset(pOutput, 0, (size_t)frameCount * 2 * sizeof(ma_int16));
   }
-  fprintf(stdout, "----------\n");
-}
-
-#define TEST_ERROR(_msg)        \
-  error = alGetError();         \
-  if (error != AL_NO_ERROR) {   \
-    fprintf(stderr, _msg "\n"); \
-    return -1;                  \
-  }
-
-static inline ALenum to_al_format(short channels, short samples) {
-  bool stereo = (channels > 1);
-
-  switch (samples) {
-    case 16:
-      if (stereo)
-        return AL_FORMAT_STEREO16;
-      else
-        return AL_FORMAT_MONO16;
-    case 8:
-      if (stereo)
-        return AL_FORMAT_STEREO8;
-      else
-        return AL_FORMAT_MONO8;
-    default:
-      return -1;
-  }
-}
-#endif
-
-#if SOUND
-ALCdevice* device;
-
-ALCcontext* context;
-ALuint buffer;
-ALfloat listenerOri[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f};
-ALboolean loop = AL_FALSE;
-ALCenum error;
-ALint source_state;
-#endif
-
-int create_sound(ALuint* source, const char* filename) {
-#if SOUND
-  ALvoid* data;
-  ALsizei size, freq;
-  ALenum format;
-
-  alGenSources((ALuint)1, source);
-  TEST_ERROR("source generation");
-
-  alSourcef(*source, AL_PITCH, 1);
-  TEST_ERROR("source pitch");
-  alSourcef(*source, AL_GAIN, 1);
-  TEST_ERROR("source gain");
-  alSource3f(*source, AL_POSITION, 0, 0, 0);
-  TEST_ERROR("source position");
-  alSource3f(*source, AL_VELOCITY, 0, 0, 0);
-  TEST_ERROR("source velocity");
-  alSourcei(*source, AL_LOOPING, AL_FALSE);
-  TEST_ERROR("source looping");
-
-  alGenBuffers(1, &buffer);
-  TEST_ERROR("buffer generation");
-#ifdef LIBAUDIO
-  /* load data */
-  wave = WaveOpenFileForReading("test.wav");
-  if (!wave) {
-    fprintf(stderr, "failed to read wave file\n");
-    return -1;
-  }
-
-  ret = WaveSeekFile(0, wave);
-  if (ret) {
-    fprintf(stderr, "failed to seek wave file\n");
-    return -1;
-  }
-
-  bufferData = malloc(wave->dataSize);
-  if (!bufferData) {
-    perror("malloc");
-    return -1;
-  }
-
-  ret = WaveReadFile(bufferData, wave->dataSize, wave);
-  if (ret != wave->dataSize) {
-    fprintf(stderr, "short read: %d, want: %d\n", ret, wave->dataSize);
-    return -1;
-  }
-
-  alBufferData(buffer, to_al_format(wave->channels, wave->bitsPerSample), bufferData, wave->dataSize, wave->sampleRate);
-  TEST_ERROR("failed to load buffer data");
-#elif defined(WAVLOAD)
-  if (!LoadWAVFile(FS_ResolvePathTemp(filename), &format, &data, &size, &freq)) {
-    return -1;
-  }
-#else
-  alutLoadWAVFile(filename, &format, &data, &size, &freq, &loop);
-  TEST_ERROR("loading wav file");
-#endif
-
-  alBufferData(buffer, format, data, size, freq);
-  TEST_ERROR("buffer copy");
-
-  alSourcei(*source, AL_BUFFER, buffer);
-  TEST_ERROR("buffer binding");
-#else
-  (void)source;
-  (void)filename;
-#endif
-  return 1;
 }
 
 int SYS_SND_Setup(void) {
-#if SOUND
-  ALboolean enumeration;
-  // const ALCchar *devices;
-#ifdef LIBAUDIO
-  int ret;
-  WaveInfo* wave;
-  char* bufferData;
-#endif
+  fprintf(stdout, "[audio] Dreamcast: miniaudio dev-0.12\n");
 
-  fprintf(stdout, "Using " BACKEND " as audio backend\n");
+  memset(sound_table, 0, sizeof(sound_table));
+  current_sound.active = 0;
 
-  enumeration = alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT");
-  if (enumeration == AL_FALSE)
-    fprintf(stderr, "enumeration extension not available\n");
+  ma_context_config contextConfig = ma_context_config_init();
 
-  list_audio_devices(alcGetString(NULL, ALC_DEVICE_SPECIFIER));
-
-  const ALCchar* defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
-
-  device = alcOpenDevice(defaultDeviceName);
-  if (!device) {
-    fprintf(stderr, "unable to open default device\n");
+  ma_result result = ma_context_init(NULL, 0, &contextConfig, &g_context);
+  if (result != MA_SUCCESS) {
+    fprintf(stderr, "[audio] ma_context_init failed (err=%d)\n", result);
     return -1;
   }
 
-  fprintf(stdout, "Device: %s\n", alcGetString(device, ALC_DEVICE_SPECIFIER));
+  ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
+  deviceConfig.playback.format = ma_format_s16;
+  deviceConfig.playback.channels = 2;
+  deviceConfig.sampleRate = 44100;
+  deviceConfig.periodSizeInFrames = 2048;
+  deviceConfig.noFixedSizedCallback = MA_TRUE;
+  deviceConfig.dataCallback = data_callback;
 
-  alGetError();
-
-  context = alcCreateContext(device, NULL);
-  if (!alcMakeContextCurrent(context)) {
-    fprintf(stderr, "failed to make default context\n");
+  result = ma_device_init(&g_context, &deviceConfig, &g_device);
+  if (result != MA_SUCCESS) {
+    fprintf(stderr, "[audio] ma_device_init failed (err=%d)\n", result);
+    ma_context_uninit(&g_context);
     return -1;
   }
-  TEST_ERROR("make default context");
 
-  /* set orientation */
-  alListener3f(AL_POSITION, 0, 0, 1.0f);
-  TEST_ERROR("listener position");
-  alListener3f(AL_VELOCITY, 0, 0, 0);
-  TEST_ERROR("listener velocity");
-  alListenerfv(AL_ORIENTATION, listenerOri);
-  TEST_ERROR("listener orientation");
-#endif
+  result = ma_device_start(&g_device);
+  if (result != MA_SUCCESS) {
+    fprintf(stderr, "[audio] ma_device_start failed (err=%d)\n", result);
+    ma_device_uninit(&g_device);
+    ma_context_uninit(&g_context);
+    return -1;
+  }
 
+  g_initialized = 1;
+  fprintf(stdout, "[audio] Device started\n");
   return 0;
 }
 
-void __attribute__((unused)) SND_Play(ALuint source) {
-#ifdef SOUND
-  alSourcePlay(source);
-#else
-  (void)source;
-#endif
+void SND_Update(void) {
+  fprintf(stdout, "SND_update()\n");
+  if (g_initialized) {
+    fprintf(stdout, "SND_update() init\n");
+    ma_device_step(&g_device, MA_BLOCKING_MODE_NON_BLOCKING);
+  }
 }
 
 int SYS_SND_Destroy(void) {
-#ifdef SOUND
-  /* exit context */
-  alDeleteBuffers(1, &buffer);
-  device = alcGetContextsDevice(context);
-  alcMakeContextCurrent(NULL);
-  alcDestroyContext(context);
-  alcCloseDevice(device);
-#endif
+  fprintf(stdout, "[audio] Shutting down\n");
+
+  if (g_initialized) {
+    if (current_sound.active) {
+      ma_decoder_uninit(&current_sound.decoder);
+      current_sound.active = 0;
+    }
+    ma_device_uninit(&g_device);
+    g_initialized = 0;
+  }
 
   return 0;
 }
+
+int create_sound(unsigned int* source, const char* filename) {
+  if (!source || !filename) return -1;
+
+  int slot = -1;
+  for (int i = 0; i < MAX_SOUNDS; i++) {
+    if (!sound_table[i].used) { slot = i; break; }
+  }
+  if (slot < 0) return -1;
+
+  ma_decoder_config cfg = ma_decoder_config_init(ma_format_s16, 2, 44100);
+  ma_decoder decoder;
+  if (ma_decoder_init_file(filename, &cfg, &decoder) != MA_SUCCESS) return -1;
+  ma_decoder_uninit(&decoder);
+
+  strncpy(sound_table[slot].filename, filename, sizeof(sound_table[slot].filename) - 1);
+  sound_table[slot].filename[sizeof(sound_table[slot].filename) - 1] = '\0';
+  sound_table[slot].used = 1;
+
+  *source = (unsigned int)slot;
+  return 1;
+}
+
+void SND_Play(unsigned int source) {
+  if (source >= MAX_SOUNDS || !sound_table[source].used) return;
+
+  if (current_sound.active) {
+    ma_decoder_uninit(&current_sound.decoder);
+    current_sound.active = 0;
+  }
+
+  ma_decoder_config cfg = ma_decoder_config_init(ma_format_s16, 2, 44100);
+  if (ma_decoder_init_file(sound_table[source].filename, &cfg, &current_sound.decoder) == MA_SUCCESS) {
+    current_sound.active = 1;
+  }
+}
+#else
+int SYS_SND_Setup(void) { return 0; }
+void SND_Update(void) {}
+int SYS_SND_Destroy(void) { return 0; }
+int create_sound(unsigned int* source, const char* filename) { (void)source; (void)filename; return -1; }
+void SND_Play(unsigned int source) { (void)source; }
+#endif

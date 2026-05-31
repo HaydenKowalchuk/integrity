@@ -4,6 +4,7 @@
 #include <integrity/common/file_access.h>
 #include <integrity/common/input.h>
 #include <integrity/common/renderer.h>
+#include <integrity/common/sound_system.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,13 +28,6 @@ int Sys_FileTime(const char* path) {
 void Sys_mkdir(__attribute__((unused)) const char* path) {
 }
 
-/*
-===============================================================================
-
-SYSTEM IO
-
-===============================================================================
-*/
 void Sys_Quit(void) {
   /* Reset video mode, clear screen */
   // vid_set_mode(DM_640x480, PM_RGB565);
@@ -218,7 +212,7 @@ int main(int argc, char** argv) {
 
     // Render
     Host_Frame(frametime);
-    // snd_bump_poll(); // For Sound
+    SND_Update();
     frame_count++;
 
     glKosSwapBuffers();

@@ -7,7 +7,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#define GAMEJAM_LOG_LEVEL 0
+#define GAMEJAM_LOG_LEVEL 4
 #define GAMEJAM_LOG_GROUP "FS"
 #include <gamejam/log.h>
 
@@ -38,7 +38,9 @@ void FS_AddSearchPath(const char* path) {
     return;
   }
 
+#if 0
   FS_DebugDumpFolder(path);
+#endif
 
   strncpy(fs_search_paths[fs_num_paths], path, FS_MAX_PATH - 1);
 
