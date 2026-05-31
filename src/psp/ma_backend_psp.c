@@ -20,13 +20,16 @@ typedef struct ma_context_state_psp {
 } ma_context_state_psp;
 
 typedef struct ma_device_state_psp {
+  ma_device* pDevice;
   ma_uint32 periodSizeInBytes;
   ma_uint32 periodSizeInFrames;
-  void* pBufferRaw; /* base allocation (for free) */
-  void* pBuffer;    /* 64-byte aligned pointer (for hardware) */
+  void* pBufferRaw;
+  void* pBuffer;
   SceUID threadId;
   int    running;
 } ma_device_state_psp;
+
+static ma_device_state_psp* g_psp_audio_state;
 
 static ma_context_state_psp* ma_context_get_backend_state__psp(ma_context* pContext) {
   return (ma_context_state_psp*)ma_context_get_backend_state(pContext);
@@ -72,8 +75,9 @@ static ma_result ma_context_enumerate_devices__psp(ma_context* pContext,
 
 static int audio_thread_func(SceSize args, void* argp) {
   (void)args;
-  ma_device* pDevice = *(ma_device**)argp;
-  ma_device_state_psp* pState = ma_device_get_backend_state__psp(pDevice);
+  (void)argp;
+  ma_device_state_psp* pState = g_psp_audio_state;
+  ma_device* pDevice = pState->pDevice;
 
   while (pState->running) {
     ma_device_handle_backend_data_callback(pDevice, pState->pBuffer, NULL, pState->periodSizeInFrames);
@@ -115,8 +119,9 @@ static ma_result ma_device_init__psp(ma_device* pDevice, const void* pDeviceBack
     return MA_OUT_OF_MEMORY;
   }
 
-  pDeviceStatePsp->periodSizeInBytes  = periodSizeInBytes;
-  pDeviceStatePsp->periodSizeInFrames = periodSizeInFrames;
+  pDeviceStatePsp->pDevice             = pDevice;
+  pDeviceStatePsp->periodSizeInBytes   = periodSizeInBytes;
+  pDeviceStatePsp->periodSizeInFrames  = periodSizeInFrames;
   pDeviceStatePsp->pBufferRaw = ma_malloc(periodSizeInBytes + 63, ma_device_get_allocation_callbacks(pDevice));
   if (pDeviceStatePsp->pBufferRaw == NULL) {
     sceAudioSRCChRelease();
@@ -126,6 +131,8 @@ static ma_result ma_device_init__psp(ma_device* pDevice, const void* pDeviceBack
   pDeviceStatePsp->pBuffer = (void*)(((uintptr_t)pDeviceStatePsp->pBufferRaw + 63) & ~(uintptr_t)63);
   pDeviceStatePsp->running = 0;
   pDeviceStatePsp->threadId = 0;
+
+  g_psp_audio_state = NULL;
 
   *ppDeviceState = pDeviceStatePsp;
 
@@ -143,8 +150,10 @@ static void ma_device_uninit__psp(ma_device* pDevice) {
 
   if (pDeviceStatePsp->running) {
     pDeviceStatePsp->running = 0;
-    sceKernelWaitThreadEnd(pDeviceStatePsp->threadId, NULL);
-    sceKernelDeleteThread(pDeviceStatePsp->threadId);
+    if (pDeviceStatePsp->threadId > 0) {
+      sceKernelWaitThreadEnd(pDeviceStatePsp->threadId, NULL);
+      sceKernelDeleteThread(pDeviceStatePsp->threadId);
+    }
   }
 
   while (sceAudioOutput2GetRestSample() > 0)
@@ -152,19 +161,24 @@ static void ma_device_uninit__psp(ma_device* pDevice) {
   sceAudioSRCChRelease();
   ma_free(pDeviceStatePsp->pBufferRaw, ma_device_get_allocation_callbacks(pDevice));
   ma_free(pDeviceStatePsp, ma_device_get_allocation_callbacks(pDevice));
+
+  g_psp_audio_state = NULL;
 }
 
 static ma_result ma_device_start__psp(ma_device* pDevice) {
   ma_device_state_psp* pDeviceStatePsp = ma_device_get_backend_state__psp(pDevice);
+
+  g_psp_audio_state = pDeviceStatePsp;
 
   pDeviceStatePsp->running = 1;
   pDeviceStatePsp->threadId = sceKernelCreateThread("audio_thread", audio_thread_func,
       0x10, 0x4000, PSP_THREAD_ATTR_USER, 0);
   if (pDeviceStatePsp->threadId < 0) {
     pDeviceStatePsp->running = 0;
+    g_psp_audio_state = NULL;
     return MA_ERROR;
   }
-  sceKernelStartThread(pDeviceStatePsp->threadId, sizeof(pDevice), &pDevice);
+  sceKernelStartThread(pDeviceStatePsp->threadId, 0, NULL);
   return MA_SUCCESS;
 }
 
@@ -173,10 +187,14 @@ static ma_result ma_device_stop__psp(ma_device* pDevice) {
 
   if (pDeviceStatePsp->running) {
     pDeviceStatePsp->running = 0;
-    sceKernelWaitThreadEnd(pDeviceStatePsp->threadId, NULL);
-    sceKernelDeleteThread(pDeviceStatePsp->threadId);
+    if (pDeviceStatePsp->threadId > 0) {
+      sceKernelWaitThreadEnd(pDeviceStatePsp->threadId, NULL);
+      sceKernelDeleteThread(pDeviceStatePsp->threadId);
+    }
     pDeviceStatePsp->threadId = 0;
   }
+
+  g_psp_audio_state = NULL;
   return MA_SUCCESS;
 }
 

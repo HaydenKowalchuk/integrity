@@ -7,6 +7,10 @@
 #if SOUND
 #include <miniaudio.h>
 
+#ifdef PLATFORM_PSP
+#include <pspthreadman.h>
+#endif
+
 #define MAX_SOUNDS 64
 
 typedef struct {
@@ -26,14 +30,29 @@ static ma_device g_device;
 static int g_initialized = 0;
 static float g_phase = 0.0f;
 
+#ifdef PLATFORM_PSP
+static SceUID g_audio_lock;
+#endif
+
 static void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
   (void)pDevice;
   (void)pInput;
 
+#ifdef PLATFORM_PSP
+  sceKernelWaitSema(g_audio_lock, 1, NULL);
+#endif
+
   if (current_sound.active) {
-    ma_decoder_read_pcm_frames(&current_sound.decoder, pOutput, frameCount, NULL);
-  } else {
+    ma_uint64 framesRead;
+    ma_result res = ma_decoder_read_pcm_frames(&current_sound.decoder, pOutput, frameCount, &framesRead);
+    if (res != MA_SUCCESS || framesRead == 0) {
+      ma_decoder_uninit(&current_sound.decoder);
+      current_sound.active = 0;
+    }
+  }
+
+  if (!current_sound.active) {
     ma_int16* out = (ma_int16*)pOutput;
     for (ma_uint32 i = 0; i < frameCount; i++) {
       ma_int16 s = (ma_int16)(8000.0f * sinf(g_phase * 6.2831853f));
@@ -43,6 +62,10 @@ static void data_callback(ma_device* pDevice, void* pOutput, const void* pInput,
       if (g_phase >= 1.0f) g_phase -= 1.0f;
     }
   }
+
+#ifdef PLATFORM_PSP
+  sceKernelSignalSema(g_audio_lock, 1);
+#endif
 }
 
 int SYS_SND_Setup(void)
@@ -51,6 +74,10 @@ int SYS_SND_Setup(void)
 
   memset(sound_table, 0, sizeof(sound_table));
   current_sound.active = 0;
+
+#ifdef PLATFORM_PSP
+  g_audio_lock = sceKernelCreateSema("audio_lock", 0, 1, 1, NULL);
+#endif
 
   ma_context_config contextConfig = ma_context_config_init();
 
@@ -104,13 +131,24 @@ void SND_Update(void)
 int SYS_SND_Destroy(void)
 {
   if (g_initialized) {
+    g_initialized = 0;
+
+#ifdef PLATFORM_PSP
+    sceKernelWaitSema(g_audio_lock, 1, NULL);
+#endif
+
     if (current_sound.active) {
       ma_decoder_uninit(&current_sound.decoder);
       current_sound.active = 0;
     }
+
+#ifdef PLATFORM_PSP
+    sceKernelSignalSema(g_audio_lock, 1);
+    sceKernelDeleteSema(g_audio_lock);
+#endif
+
     ma_device_uninit(&g_device);
     ma_context_uninit(&g_context);
-    g_initialized = 0;
   }
   return 0;
 }
@@ -139,6 +177,11 @@ int create_sound(unsigned int* source, const char* filename)
 void SND_Play(unsigned int source)
 {
   if (source >= MAX_SOUNDS || !sound_table[source].used) return;
+
+#ifdef PLATFORM_PSP
+  sceKernelWaitSema(g_audio_lock, 1, NULL);
+#endif
+
   if (current_sound.active) {
     ma_decoder_uninit(&current_sound.decoder);
     current_sound.active = 0;
@@ -146,6 +189,10 @@ void SND_Play(unsigned int source)
   ma_decoder_config cfg = ma_decoder_config_init(ma_format_s16, 2, 44100);
   if (ma_decoder_init_file(sound_table[source].filename, &cfg, &current_sound.decoder) == MA_SUCCESS)
     current_sound.active = 1;
+
+#ifdef PLATFORM_PSP
+  sceKernelSignalSema(g_audio_lock, 1);
+#endif
 }
 #else
 int SYS_SND_Setup(void) { return 0; }
