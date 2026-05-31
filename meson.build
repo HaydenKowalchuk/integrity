@@ -2,17 +2,17 @@ project(
   'integrity',
   'c',
   version: '1.0',
-  default_options: ['c_std=c99', 'b_staticpic=false', 'default_library=static'],
+  default_options: ['c_std=gnu17', 'b_staticpic=false', 'default_library=static'],
   meson_version: '>=0.65.0',
 )
 
 # Compiler arguments
 arg_base = [
+  '-std=gnu17',
   '-Wstack-protector',
   '-Wno-strict-prototypes',
   '-Wno-missing-braces',
   '-Wformat=0',
-  '-std=gnu11',
   '-Wno-switch',
 ]
 arg_code = []
@@ -20,11 +20,16 @@ arg_linker = []
 
 # Dependencies
 cc = meson.get_compiler('c')
-m_dep = cc.find_library('m', required: false)
+m_dep = cc.find_library('m', required: true)
 
 umka_dep = dependency('umka-lang', fallback: ['umka', 'umka_dep'])
 stb_dep = dependency('stb', fallback: ['stb', 'stb_dep'])
-cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
+cglm_dep = dependency(
+  'cglm',
+  fallback: ['cglm', 'cglm_dep'],
+  default_options: ['default_library=static'],
+)
+#cglm_dep = cglm_dep.partial_dependency(compile_args: true)
 
 dep_base = [m_dep, umka_dep, stb_dep, cglm_dep]
 
@@ -118,19 +123,11 @@ elif opt_platform == 'dreamcast'
     '-DPLATFORM_DREAMCAST',
     '-DBUILD_LIBGL',
     '-DMA_NO_RUNTIME_LINKING',
-    '-DMA_NO_THREADING',
   ]
-  arg_base += [
-    '-mpretend-cmove',
-    '-fsingle-precision-constant',
-    '-fomit-frame-pointer',
-    '-finline-functions',
-    '-mfsrra',
-    '-mfsca',
-  ]
+  arg_base += ['-mpretend-cmove', '-fsingle-precision-constant']
 
   if opt_buildtype == 'debug'
-    arg_code += ['-DDEBUG', '-g', '-O0', '-fno-inline', '-fno-omit-frame-pointer']
+    arg_code += ['-DDEBUG', '-g', '-O0', '-fno-inline']
   else
     arg_code += [
       '-DNDEBUG',
@@ -138,7 +135,6 @@ elif opt_platform == 'dreamcast'
       '-g0',
       '-Os',
       '-funsafe-math-optimizations',
-      '-fomit-frame-pointer',
     ]
   endif
 
@@ -240,10 +236,10 @@ subdir('src/cooker')
 # Examples
 # Declare integrity library for examples
 integrity_dep = declare_dependency(
-  include_directories: include_directories('include'),
+  include_directories: inc,
   compile_args: arg_c,
   link_args: arg_linker,
-  dependencies: [platform_dep],
+  dependencies: dep,
   link_with: integrity_lib,
 )
 

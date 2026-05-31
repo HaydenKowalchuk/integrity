@@ -94,6 +94,10 @@ int main(int argc, char** argv){
 }
 #endif
 int startup(int argc, char** argv) {
+
+
+  FS_AddSearchPath("assets/");
+
   glfwSetErrorCallback(&error_func);
 
   if (!glfwInit()) {
