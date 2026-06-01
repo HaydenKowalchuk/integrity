@@ -20,11 +20,24 @@ cooker_lib = static_library(
   sources: cooker_lib_src,
   include_directories: cooker_inc,
   dependencies: [cgltf_dep, stb_dep, m_dep],
-  native: true,
+  native: false,
 )
 
 cooker_lib_dep = declare_dependency(
   link_with: cooker_lib,
+  include_directories: cooker_inc,
+)
+
+cooker_lib_native = static_library(
+  'cooker_lib_native',
+  sources: cooker_lib_src,
+  include_directories: cooker_inc,
+  dependencies: [cgltf_dep, stb_dep, m_dep],
+  native: true,
+)
+
+cooker_lib_native_dep = declare_dependency(
+  link_with: cooker_lib_native,
   include_directories: cooker_inc,
 )
 
@@ -34,7 +47,7 @@ cooker_exe = executable(
   'cooker',
   cooker_src,
   include_directories: cooker_inc,
-  dependencies: [cgltf_dep, stb_dep, cooker_lib_dep, m_dep],
+  dependencies: [cgltf_dep, stb_dep, cooker_lib_native_dep, m_dep],
   install: false,
   native: true,
 )

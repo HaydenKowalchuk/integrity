@@ -1,5 +1,4 @@
 #include <glad/glad.h>
-#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <desktop/glfw_input.h>
@@ -94,6 +93,11 @@ int main(int argc, char** argv){
 }
 #endif
 int startup(int argc, char** argv) {
+
+
+  FS_AddSearchPath("../assets/");
+  FS_AddSearchPath("assets/");
+
   glfwSetErrorCallback(&error_func);
 
   if (!glfwInit()) {

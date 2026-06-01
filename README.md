@@ -33,6 +33,9 @@ cd integrity
 ### Native Build (macOS / Linux)
 ```bash
 meson setup builddir --buildtype=release
+# Debug 
+meson setup builddir
+
 meson compile -C builddir
 ```
 
@@ -46,9 +49,13 @@ meson setup build-windows --buildtype=release -Dplatform=windows --cross-file x8
 
 # Dreamcast
 meson setup build-dreamcast --buildtype=release -Dplatform=dreamcast --cross-file sh4-dreamcast-kos
+# Debug
+meson setup build-dreamcast -Dplatform=dreamcast --cross-file sh4-dreamcast-kos
 
 # PSP
 meson setup build-psp --buildtype=release -Dplatform=psp --cross-file mips-allegrex-psp
+# Debug
+meson setup build-psp -Dplatform=psp --cross-file mips-allegrex-psp
 ```
 
 # Platform-Specific Requirements

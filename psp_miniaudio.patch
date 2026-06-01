@@ -1,0 +1,89 @@
+--- a/miniaudio.h
++++ b/miniaudio.h
+@@ -4394,6 +4394,9 @@
+     #if defined(__vita__)
+         #define MA_VITA         /* Assuming Vita SDK. */
+     #endif
++    #if defined(__psp__)
++        #define MA_PSP          /* Assuming PSP SDK. */
++    #endif
+     #if defined(__BEOS__) || defined(__HAIKU__)
+         #define MA_BEOS
+     #endif
+@@ -20689,6 +20692,9 @@
+ #if defined(MA_DREAMCAST)
+     #define MA_SUPPORT_DREAMCAST
+ #endif
++#if defined(MA_PSP)
++    #define MA_SUPPORT_PSP
++#endif
+ #if defined(MA_XBOX)
+     #define MA_SUPPORT_XAUDIO
+ #endif
+@@ -7762,6 +7768,27 @@
+ /* END miniaudio_vita.h */
+
+
++/* BEG miniaudio_psp.h */
++extern ma_device_backend_vtable* ma_device_backend_psp;
++MA_API ma_device_backend_vtable* ma_psp_get_vtable(void);
++
++
++typedef struct
++{
++    int _unused;
++} ma_context_config_psp;
++
++MA_API ma_context_config_psp ma_context_config_psp_init(void);
++
++
++typedef struct
++{
++    int _unused;
++} ma_device_config_psp;
++
++MA_API ma_device_config_psp ma_device_config_psp_init(void);
++/* END miniaudio_psp.h */
++
++
+ /* BEG miniaudio_null.h */
+ typedef struct ma_context_config_null
+ {
+@@ -8194,6 +8221,7 @@
+     ma_device_config_vita       vita;
++    ma_device_config_psp        psp;
+     ma_device_config_null       null_backend;
+ };
+
+@@ -8336,6 +8364,7 @@
+     ma_context_config_vita       vita;
++    ma_context_config_psp        psp;
+     ma_context_config_null       null_backend;
+ };
+
+@@ -50524,6 +50553,9 @@
+         if (pVTable == ma_device_backend_vita) {
+             return &pConfig->vita;
+         }
++        if (pVTable == ma_device_backend_psp) {
++            return &pConfig->psp;
++        }
+         if (pVTable == ma_device_backend_null) {
+             return &pConfig->null_backend;
+         }
+@@ -50558,6 +50590,7 @@
+     if (backendsCap > count) { pBackends[count++] = ma_device_backend_config_init(ma_device_backend_vita,       NULL); }
++    if (backendsCap > count) { pBackends[count++] = ma_device_backend_config_init(ma_device_backend_psp,        NULL); }
+     if (backendsCap > count) { pBackends[count++] = ma_device_backend_config_init(ma_device_backend_null,       NULL); }
+
+     return count;
+@@ -51027,6 +51060,9 @@
+         if (pVTable == ma_device_backend_vita) {
+             return &pConfig->vita;
+         }
++        if (pVTable == ma_device_backend_psp) {
++            return &pConfig->psp;
++        }
+         if (pVTable == ma_device_backend_null) {
+             return &pConfig->null_backend;
+         }

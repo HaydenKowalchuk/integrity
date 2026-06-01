@@ -19,7 +19,7 @@ bindir = 'bin'
 #pkg_config_path = '/usr/lib/pkgconfig'
 
 [host_machine]
-system = 'none'
+system = 'psp'
 cpu_family = 'mips'
 cpu = 'mips'
 endian = 'little'

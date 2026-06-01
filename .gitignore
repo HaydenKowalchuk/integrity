@@ -62,3 +62,4 @@ build-*/*
 .ccls-cache/*
 .zed/settings.json
 subprojects/.wraplock
+*.cdi

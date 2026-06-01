@@ -2,18 +2,17 @@ project(
   'integrity',
   'c',
   version: '1.0',
-  default_options: ['c_std=c99', 'b_staticpic=false', 'default_library=static'],
+  default_options: ['c_std=gnu17', 'b_staticpic=false', 'default_library=static'],
   meson_version: '>=0.65.0',
 )
 
 # Compiler arguments
 arg_base = [
-  '-Wshadow',
+  '-std=gnu17',
   '-Wstack-protector',
   '-Wno-strict-prototypes',
   '-Wno-missing-braces',
   '-Wformat=0',
-  '-std=gnu11',
   '-Wno-switch',
 ]
 arg_code = []
@@ -21,11 +20,16 @@ arg_linker = []
 
 # Dependencies
 cc = meson.get_compiler('c')
-m_dep = cc.find_library('m', required: false)
+m_dep = cc.find_library('m', required: true)
 
 umka_dep = dependency('umka-lang', fallback: ['umka', 'umka_dep'])
 stb_dep = dependency('stb', fallback: ['stb', 'stb_dep'])
-cglm_dep = dependency('cglm', fallback: ['cglm', 'cglm_dep'])
+cglm_dep = dependency(
+  'cglm',
+  fallback: ['cglm', 'cglm_dep'],
+  default_options: ['default_library=static'],
+)
+#cglm_dep = cglm_dep.partial_dependency(compile_args: true)
 
 dep_base = [m_dep, umka_dep, stb_dep, cglm_dep]
 
@@ -58,6 +62,7 @@ src_files += files('src/common/util.c')
 src_files += files('src/common/file_access.c')
 src_files += files('src/common/main.c')
 src_files += files('src/scene/scene.c')
+src_files += files('src/psp/ma_backend_psp.c')
 src_files += files('src/scene/null_scene.c')
 src_files += files('src/ui/gl_batcher.c')
 src_files += files('src/ui/ui_backend.c')
@@ -89,11 +94,6 @@ if opt_platform in ['linux', 'macos', 'windows']
   miniaudio_dep = dependency(
     'miniaudio',
     fallback: ['miniaudio', 'ma_dep'],
-    default_options: [
-      'examples=disabled',
-      'tests=disabled',
-      'tools=disabled',
-    ],
   )
 
   platform_dep += [glfw_dep, miniaudio_dep]
@@ -119,18 +119,15 @@ elif opt_platform == 'windows'
   platform_src += files('src/windows/sys_windows.c')
 
 elif opt_platform == 'dreamcast'
-  arg_code += ['-DPLATFORM_DREAMCAST', '-DBUILD_LIBGL']
-  arg_base += [
-    '-mpretend-cmove',
-    '-fsingle-precision-constant',
-    '-fomit-frame-pointer',
-    '-finline-functions',
-    '-mfsrra',
-    '-mfsca',
+  arg_code += [
+    '-DPLATFORM_DREAMCAST',
+    '-DBUILD_LIBGL',
+    '-DMA_NO_RUNTIME_LINKING',
   ]
+  arg_base += ['-mpretend-cmove', '-fsingle-precision-constant']
 
   if opt_buildtype == 'debug'
-    arg_code += ['-DDEBUG', '-g', '-O0', '-fno-inline', '-fno-omit-frame-pointer']
+    arg_code += ['-DDEBUG', '-g', '-O0', '-fno-inline']
   else
     arg_code += [
       '-DNDEBUG',
@@ -138,14 +135,17 @@ elif opt_platform == 'dreamcast'
       '-g0',
       '-Os',
       '-funsafe-math-optimizations',
-      '-fomit-frame-pointer',
     ]
   endif
 
   gldc_dep = dependency('gldc', fallback: ['gldc', 'libgldc_dep'])
   crayonvmu_dep = dependency('crayonvmu', fallback: ['crayonvmu', 'libcrayonvmu_dep'])
+  miniaudio_dep = dependency(
+    'miniaudio',
+    fallback: ['miniaudio', 'ma_dep'],
+  )
 
-  platform_dep += [gldc_dep, crayonvmu_dep]
+  platform_dep += [gldc_dep, crayonvmu_dep, miniaudio_dep]
   platform_src += files(
     'src/dreamcast/perfctr.c',
     'src/dreamcast/sys_dreamcast.c',
@@ -158,7 +158,7 @@ elif opt_platform == 'dreamcast'
   )
 
 elif opt_platform == 'psp'
-  arg_code += ['-DPLATFORM_PSP']
+  arg_code += ['-DPLATFORM_PSP', '-DMA_SUPPORT_PSP', '-DMA_NO_RUNTIME_LINKING']
   arg_base += [
     '-fsingle-precision-constant',
     '-ffast-math',
@@ -201,19 +201,6 @@ elif opt_platform == 'psp'
   miniaudio_dep = dependency(
     'miniaudio',
     fallback: ['miniaudio', 'ma_dep'],
-    default_options: [
-      'b_staticpic=false',
-      'backends=',
-      'runtime_linking=disabled',
-      'device_io=disabled',
-      'engine=false',
-      'generation=false',
-      'libvorbis=disabled',
-      'libopus=disabled',
-      'examples=disabled',
-      'tests=disabled',
-      'tools=disabled',
-    ],
   )
 
   platform_dep += [pspgl_dep, miniaudio_dep]
@@ -249,10 +236,10 @@ subdir('src/cooker')
 # Examples
 # Declare integrity library for examples
 integrity_dep = declare_dependency(
-  include_directories: include_directories('include'),
+  include_directories: inc,
   compile_args: arg_c,
   link_args: arg_linker,
-  dependencies: [platform_dep],
+  dependencies: dep,
   link_with: integrity_lib,
 )
 

@@ -12,7 +12,10 @@ example_audio_exe = executable(
 )
 
 example_assets = [
-  meson.project_source_root() / 'assets' / 'click.wav',
+  meson.project_source_root() / 'assets' / 'noise.wav',
+  meson.project_source_root() / 'assets' / 'beep_high.wav',
+  meson.project_source_root() / 'assets' / 'beep_low.wav',
+  meson.project_source_root() / 'assets' / 'sweep.wav',
 ]
 
 foreach asset : example_assets

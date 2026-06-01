@@ -3,6 +3,7 @@
 #include <integrity/common/common.h>
 #include <integrity/common/input.h>
 #include <integrity/common/renderer.h>
+#include <integrity/common/sound_system.h>
 #include <pspctrl.h>
 #include <pspgl_misc.h>
 #include <pspuser.h>
@@ -269,6 +270,8 @@ int main(int argc, char** argv) {
     Host_Frame(frametime);
     frame_count++;
     eglSwapBuffers(dpy, surface);
+
+    SND_Update();
   }
   SYS_SND_Destroy();
   sceKernelExitGame();
