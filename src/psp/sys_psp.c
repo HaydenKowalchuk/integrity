@@ -217,9 +217,9 @@ int main(int argc, char** argv) {
   // getcwd(buf, 128);
   // printf("cwd: %s\n", buf);
   FS_ClearSearchPaths();
-  // FS_AddSearchPath("");
   FS_AddSearchPath("disc0:/PSP_GAME/USRDIR");
   FS_AddSearchPath("host0:/");
+  FS_AddSearchPath("");
 
   SYS_SND_Setup();
 
