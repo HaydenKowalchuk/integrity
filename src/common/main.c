@@ -64,6 +64,11 @@ static inline void Host_Render2D(float time) {
 }
 
 void Host_Update(float time) {
+  /* Process deferred scene changes so the new scene's update
+     runs before any render on this frame */
+  SCN_FlushPendingChange();
+  SCN_FlushPendingChange();  /* Handle chains (e.g. A_Init → SCN_ChangeTo(B)) */
+
   IntegrityScene* scene_current = SCN_Current();
   bool update_fallthrough = scene_current->flags & SCENE_FALLTHROUGH_UPDATE;
 

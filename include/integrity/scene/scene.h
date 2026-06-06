@@ -27,6 +27,7 @@ IntegrityScene* SCN_Push(IntegrityScene next);
 IntegrityScene* SCN_Pop(void);
 IntegrityScene* SCN_Current(void);
 IntegrityScene* SCN_Peek(void);
+void SCN_FlushPendingChange(void);
 
 void SCN_SetContext(void* ctx);
 void* SCN_GetContext(void);

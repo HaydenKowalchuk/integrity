@@ -8,17 +8,30 @@ IntegrityScene scene_current;
 static void* scene_context = NULL;
 static IntegrityScene* scene_next = NULL;
 
+static bool has_pending_change = false;
+static IntegrityScene pending_scene;
+
 IntegrityScene* SCN_Push(IntegrityScene next) {
   push(&scene_root, next);
   return &scene_root->data;
 }
 
 IntegrityScene* SCN_ChangeTo(IntegrityScene next) {
-  pop(&scene_root);
-  push(&scene_root, next);
+  has_pending_change = true;
+  pending_scene = next;
+  return SCN_Current();
+}
 
+void SCN_FlushPendingChange(void) {
+  if (!has_pending_change) return;
+
+  /* Clear BEFORE processing so nested SCN_ChangeTo calls
+     from init functions re-set the flag correctly */
+  has_pending_change = false;
+
+  pop(&scene_root);
+  push(&scene_root, pending_scene);
   resource_objects_flush();
-  return peek(&scene_root->next);
 }
 
 IntegrityScene* SCN_Pop(void) {

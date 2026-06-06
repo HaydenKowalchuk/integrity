@@ -63,3 +63,5 @@ build-*/*
 .zed/settings.json
 subprojects/.wraplock
 *.cdi
+launch_cdi.sh
+pkg_dreamcast_cdi.sh
