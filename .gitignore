@@ -65,3 +65,4 @@ subprojects/.wraplock
 *.cdi
 launch_cdi.sh
 pkg_dreamcast_cdi.sh
+.ccls

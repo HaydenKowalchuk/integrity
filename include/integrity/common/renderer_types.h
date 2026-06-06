@@ -5,24 +5,22 @@
 #define VERTEX_EOL 0xf0000000
 #define VERTEX 0xe0000000
 
-#if defined(_arch_dreamcast) || defined(DESKTOP)
-#define RGBA_FORMAT (GL_BGRA)
-#else
-#define RGBA_FORMAT (4)
-#endif
-
 // On little-endian, these pack macros arrange bytes in memory to match each struct:
 //   PACK_ARGB8888 -> LE bytes [b, g, r, a] -> color_uc_bgra {b,g,r,a}  (Dreamcast glvert_fast_t)
 //   PACK_ABGR8888 -> LE bytes [r, g, b, a] -> color_uc       {r,g,b,a}  (desktop/PSP psp_fast_t)
 #define PACK_ARGB8888(r, g, b, a) (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(r) << 16) | ((uint32_t)(uint8_t)(g) << 8) | (uint32_t)(uint8_t)(b))
-#define PACK_RGBA8888(r, g, b, a) (((uint32_t)(uint8_t)(r) << 24) | ((uint32_t)(uint8_t)(g) << 16) | ((uint32_t)(uint8_t)(b) << 8) | (uint32_t)(uint8_t)(a))
 #define PACK_BGRA8888(r, g, b, a) (((uint32_t)(uint8_t)(b) << 24) | ((uint32_t)(uint8_t)(g) << 16) | ((uint32_t)(uint8_t)(r) << 8) | (uint32_t)(uint8_t)(a))
-#define PACK_ABGR8888(r, g, b, a) (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | ((uint32_t)(uint8_t)(g) << 8) | (uint32_t)(uint8_t)(r))
+#define PACK_RGBA8888(r, g, b, a) (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | ((uint32_t)(uint8_t)(g) << 8) | (uint32_t)(uint8_t)(r))
 
-#if defined(_arch_dreamcast)
+#if defined(_arch_dreamcast) || defined(COOKER_TARGET_DREAMCAST)
 #define PACK_COLOR(r, g, b, a) PACK_ARGB8888(r, g, b, a)
+#define RGBA_FORMAT (GL_BGRA)
+#elif defined(__PSP__) || defined(COOKER_TARGET_PSP)
+#define PACK_COLOR(r, g, b, a) PACK_RGBA8888(r, g, b, a)
+#define RGBA_FORMAT (4)
 #else
-#define PACK_COLOR(r, g, b, a) PACK_ABGR8888(r, g, b, a)
+#define PACK_COLOR(r, g, b, a) PACK_RGBA8888(r, g, b, a)
+#define RGBA_FORMAT (4)
 #endif
 
 #define VTX_COLOR_WHITE .color = {.packed = 0xFFFFFFFF}
@@ -82,7 +80,7 @@ typedef struct __attribute__((packed, aligned(4))) psp_fast_t {
   struct vec3f_gl vert;
 } psp_fast_t;
 
-#if defined(_arch_dreamcast)
+#if defined(_arch_dreamcast) || defined(COOKER_TARGET_DREAMCAST)
 typedef struct glvert_fast_t VtxFmt;
 #else
 typedef struct psp_fast_t VtxFmt;

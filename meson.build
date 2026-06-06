@@ -123,6 +123,7 @@ elif opt_platform == 'dreamcast'
     '-DPLATFORM_DREAMCAST',
     '-DBUILD_LIBGL',
     '-DMA_NO_RUNTIME_LINKING',
+    '-DCOOKER_TARGET_DREAMCAST',
   ]
   arg_base += ['-mpretend-cmove', '-fsingle-precision-constant']
 

@@ -831,7 +831,7 @@ static void add_vertex_to_bucket(CookerBucket* bucket, Vec3 pos, Vec3 normal, fl
     bucket->vertices = realloc(bucket->vertices, bucket->vertex_capacity * sizeof(VtxFmt));
   }
   VtxFmt* vtx = &bucket->vertices[bucket->vertex_count++];
-#if defined(_arch_dreamcast)
+#if defined(_arch_dreamcast) || defined(COOKER_TARGET_DREAMCAST)
   vtx->flags = 0;
 #endif
   vtx->vert.x = pos.x;
@@ -926,7 +926,7 @@ static void process_primitive(CookerBucket* bucket, const cgltf_primitive* prim,
       uint8_t b = (uint8_t)(powf(c[2], 1.0f / 2.2f) * 255.0f);
       uint8_t a = (uint8_t)(c[3] * 255.0f);
 
-      colors[tri_vert % 3] = PACK_ARGB8888(r, g, b, a);
+      colors[tri_vert % 3] = PACK_COLOR(r, g, b, a);
     } else {
       colors[tri_vert % 3] = 0xFFFFFFFF;
     }
@@ -950,7 +950,7 @@ static void process_primitive(CookerBucket* bucket, const cgltf_primitive* prim,
       uint32_t flags = (tri_vert == idx_count) ? 0x40000000 : 0;
       for (int j = 0; j < 3; j++) {
         add_vertex_to_bucket(bucket, world_pos[j], (Vec3){0, 0, 0}, uvs[j][0], uvs[j][1], colors[j]);
-#if defined(_arch_dreamcast)
+#if defined(_arch_dreamcast) || defined(COOKER_TARGET_DREAMCAST)
         bucket->vertices[bucket->vertex_count - 1].flags = (j == 2) ? flags : 0;
 #endif
       }
