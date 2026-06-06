@@ -4,10 +4,10 @@
 #include <integrity/common/renderer.h>
 
 typedef struct dimen_RECT {
-  int16_t x;
-  int16_t y;
-  int16_t w;
-  int16_t h;
+  short x;
+  short y;
+  short w;
+  short h;
 } dimen_RECT;
 
 typedef struct dimen_FRECT {
@@ -28,7 +28,7 @@ void UI_Init(void);
 void UI_Set2D(void);
 bool UI_GetScalingEnabled(void);
 void UI_SetScalingEnabled(bool enable);
-void UI_SetVirtualResolution(int16_t width, int16_t height);
+void UI_SetVirtualResolution(short width, short height);
 void UI_SetVirtualToReal(void);
 void UI_ResetVirtualResolution(void);
 dimen_RECT UI_ScaleToVirtual(const dimen_RECT* const input, const dimen_FRECT* const screen);

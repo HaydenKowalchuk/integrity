@@ -6,7 +6,6 @@
 #include <kos.h>
 #endif
 
-
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
@@ -58,10 +57,11 @@ extern int _FULLSCREEN;
 #define ABS(a) (((a) < 0) ? -(a) : (a))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
-#define Q_CIRCLE (M_PI / 2)
-#define SX_CIRCLE (M_PI / 4)
-#define DEG2RAD(x) ((x) * M_PI / 180)
-#define RAD2DEG(x) ((x) * 180 / M_PI)
+#define M_PI_F ((float)(M_PI))
+#define Q_CIRCLE (M_PI_F / 2.0f)
+#define SX_CIRCLE (M_PI_F / 4.0f)
+#define DEG2RAD(x) ((x) * M_PI_F / 180.0f)
+#define RAD2DEG(x) ((x) * 180.0f / M_PI_F)
 
 /* Test for GCC > 5.0.0 */
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)

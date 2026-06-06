@@ -8,7 +8,7 @@ typedef struct {
   GraphicsHeader header;
   MeshBatch* batches;
   uint8_t* texture_blob;
-  Vertex32* vertices;
+  VtxFmt* vertices;
   size_t file_size;
 } GltfBundle;
 

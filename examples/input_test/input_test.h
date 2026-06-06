@@ -2,4 +2,4 @@
 
 #include <integrity/scene/scene.h>
 
-extern scene scene_input_test;
+extern IntegrityScene scene_input_test;

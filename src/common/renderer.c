@@ -6,6 +6,7 @@
 #endif
 
 static bool video_aspect_wide = false;
+static GLfloat g_proj_matrix[16];
 
 void perspectiveGL(GLdouble fovY, GLdouble aspect, GLdouble zNear, GLdouble zFar) {
   GLdouble fW, fH;
@@ -17,22 +18,24 @@ void perspectiveGL(GLdouble fovY, GLdouble aspect, GLdouble zNear, GLdouble zFar
   glFrustum(-fW, fW, -fH, fH, zNear, zFar);
 }
 
+static void capture_proj_matrix(void) {
+  glGetFloatv(GL_PROJECTION_MATRIX, g_proj_matrix);
+}
+
 /* A general OpenGL initialization function.  Sets all of the initial parameters. */
 void RNDR_Init(int Width, int Height)  // We call this right after our OpenGL window is created.
 {
   glClearDepth(1.0);        // Enables Clearing Of The Depth Buffer
   glDepthFunc(GL_LESS);     // The Type Of Depth Test To Do
-  glEnable(GL_DEPTH_TEST);  // Enables Depth Testing
-  glEnable(GL_CULL_FACE);
+  glShadeModel(GL_SMOOTH);  // Enables Smooth Color Shading
   glFrontFace(GL_CCW);
-  glCullFace(GL_BACK);
-  glDisable(GL_BLEND);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();  // Reset The Projection Matrix
 
   // gluPerspective(45.0f, (video_aspect_wide) ? WIDE_ASPECT : SQUARE_ASPECT, 0.1f, 100.0f);  // Calculate The Aspect Ratio Of The Window
   perspectiveGL(45.0f, (video_aspect_wide) ? WIDE_ASPECT : SQUARE_ASPECT, 1.0f, 512.0f);  // Calculate The Aspect Ratio Of The Window
+  capture_proj_matrix();
 
   glMatrixMode(GL_MODELVIEW);
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -43,20 +46,11 @@ void RNDR_Init(int Width, int Height)  // We call this right after our OpenGL wi
 
 void RNDR_Reset(void)  // We call this right after our OpenGL window is created.
 {
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);  // This Will Clear The Background Color To Black
-  glClearDepth(1.0);                     // Enables Clearing Of The Depth Buffer
-  glDepthFunc(GL_LESS);                  // The Type Of Depth Test To Do
-  glEnable(GL_DEPTH_TEST);               // Enables Depth Testing
-  glShadeModel(GL_SMOOTH);               // Enables Smooth Color Shading
-  glEnable(GL_CULL_FACE);
-  glFrontFace(GL_CCW);
-  glCullFace(GL_BACK);
-  glDisable(GL_BLEND);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClearDepth(1.0);
 
   glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();  // Reset The Projection Matrix
-
-  perspectiveGL(45.0f, (video_aspect_wide) ? WIDE_ASPECT : SQUARE_ASPECT, 1.0f, 512.0f);  // Calculate The Aspect Ratio Of The Window
+  glLoadMatrixf(g_proj_matrix);
 
   glMatrixMode(GL_MODELVIEW);
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -73,11 +67,18 @@ void RNDR_Resize(int Width, int Height) {
   glLoadIdentity();
 
   perspectiveGL(45.0f, (GLfloat)Width / (GLfloat)Height, 1.0f, 512.0f);
+  capture_proj_matrix();
   glMatrixMode(GL_MODELVIEW);
 }
 
 void RNDR_SetWidescreen(bool wide) {
   video_aspect_wide = wide;
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  perspectiveGL(45.0f, (video_aspect_wide) ? WIDE_ASPECT : SQUARE_ASPECT, 1.0f, 512.0f);
+  capture_proj_matrix();
+  glMatrixMode(GL_MODELVIEW);
 }
 
 void RNDR_FlipAspect(void) {

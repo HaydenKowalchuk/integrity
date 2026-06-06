@@ -5,7 +5,7 @@
 static void Null_Update(float time);
 static int is_loaded = 0;
 
-struct scene null_scene = {
+struct IntegrityScene null_scene = {
     .init = NULL,
     .render2D = NULL,
     .render3D = NULL,

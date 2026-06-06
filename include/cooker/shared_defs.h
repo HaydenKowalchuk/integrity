@@ -11,12 +11,10 @@ typedef enum {
   PASS_TRANSLUCENT = 2
 } RenderPass;
 
-typedef glvert_fast_t Vertex32;
-
 typedef struct {
   uint32_t texture_crc;
   uint32_t vtx_offset;
-  uint32_t vtx_count;
+  int32_t vtx_count;
   uint32_t tri_offset;
   uint32_t num_tris;
   uint8_t pass;

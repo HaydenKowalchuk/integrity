@@ -16,7 +16,7 @@ typedef struct {
   char name[64];
   uint32_t texture_crc;
   RenderPass pass;
-  Vertex32* vertices;
+  VtxFmt* vertices;
   size_t vertex_capacity;
   size_t vertex_count;
   uint32_t* indices;
@@ -460,7 +460,7 @@ static int write_graphics_file(const char* out_bin, CookerBucket* buckets, size_
   uint32_t vtx_offset = hdr.texture_blob_offset + tex_blob_size;
   uint32_t tri_offset = vtx_offset;
   for (size_t i = 0; i < bucket_count; i++) {
-    tri_offset += (uint32_t)(buckets[i].vertex_count * sizeof(Vertex32));
+    tri_offset += (uint32_t)(buckets[i].vertex_count * sizeof(VtxFmt));
   }
 
   for (size_t i = 0; i < bucket_count; i++) {
@@ -472,7 +472,7 @@ static int write_graphics_file(const char* out_bin, CookerBucket* buckets, size_
     batch.num_tris = (uint32_t)(buckets[i].index_count > 0 ? buckets[i].index_count : buckets[i].vertex_count) / 3;
     batch.pass = buckets[i].pass;
     fwrite(&batch, sizeof(batch), 1, fp);
-    vtx_offset += (uint32_t)(buckets[i].vertex_count * sizeof(Vertex32));
+    vtx_offset += (uint32_t)(buckets[i].vertex_count * sizeof(VtxFmt));
     if (buckets[i].index_count > 0) {
       tri_offset += (uint32_t)(buckets[i].index_count * sizeof(uint32_t));
     }
@@ -483,7 +483,7 @@ static int write_graphics_file(const char* out_bin, CookerBucket* buckets, size_
   }
 
   for (size_t i = 0; i < bucket_count; i++) {
-    fwrite(buckets[i].vertices, sizeof(Vertex32), buckets[i].vertex_count, fp), free(buckets[i].vertices);
+    fwrite(buckets[i].vertices, sizeof(VtxFmt), buckets[i].vertex_count, fp), free(buckets[i].vertices);
   }
 
   for (size_t i = 0; i < bucket_count; i++) {
@@ -825,13 +825,15 @@ static uint8_t* convert_texture(uint8_t* rgba, int w, int h, RenderPass pass, si
 static void add_vertex_to_bucket(CookerBucket* bucket, Vec3 pos, Vec3 normal, float u, float v, uint32_t color) {
   if (bucket->vertex_capacity == 0) {
     bucket->vertex_capacity = 256;
-    bucket->vertices = malloc(bucket->vertex_capacity * sizeof(Vertex32));
+    bucket->vertices = malloc(bucket->vertex_capacity * sizeof(VtxFmt));
   } else if (bucket->vertex_count >= bucket->vertex_capacity) {
     bucket->vertex_capacity *= 2;
-    bucket->vertices = realloc(bucket->vertices, bucket->vertex_capacity * sizeof(Vertex32));
+    bucket->vertices = realloc(bucket->vertices, bucket->vertex_capacity * sizeof(VtxFmt));
   }
-  Vertex32* vtx = &bucket->vertices[bucket->vertex_count++];
+  VtxFmt* vtx = &bucket->vertices[bucket->vertex_count++];
+#if defined(_arch_dreamcast)
   vtx->flags = 0;
+#endif
   vtx->vert.x = pos.x;
   vtx->vert.y = pos.y;
   vtx->vert.z = pos.z;
@@ -948,7 +950,9 @@ static void process_primitive(CookerBucket* bucket, const cgltf_primitive* prim,
       uint32_t flags = (tri_vert == idx_count) ? 0x40000000 : 0;
       for (int j = 0; j < 3; j++) {
         add_vertex_to_bucket(bucket, world_pos[j], (Vec3){0, 0, 0}, uvs[j][0], uvs[j][1], colors[j]);
+#if defined(_arch_dreamcast)
         bucket->vertices[bucket->vertex_count - 1].flags = (j == 2) ? flags : 0;
+#endif
       }
     }
   }

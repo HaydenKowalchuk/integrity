@@ -29,8 +29,6 @@ int analog_emulation = 0;
 static EGLDisplay dpy;
 static EGLContext ctx;
 static EGLSurface surface;
-static EGLint width = 480;
-static EGLint height = 272;
 static unsigned int glut_display_mode = 0;
 
 static EGLint attrib_list[] = {
@@ -113,14 +111,8 @@ void create_gl(void) {
   EGLint num_configs;
 
   /* pass NativeDisplay=0, we only have one screen... */
-  EGLCHK(dpy = eglGetDisplay(0));
-  EGLCHK(eglInitialize(dpy, NULL, NULL));
-
-#if 0
-	psp_log("EGL vendor \"%s\"\n", eglQueryString(dpy, EGL_VENDOR));
-	psp_log("EGL version \"%s\"\n", eglQueryString(dpy, EGL_VERSION));
-	psp_log("EGL extensions \"%s\"\n", eglQueryString(dpy, EGL_EXTENSIONS));
-#endif
+  dpy = eglGetDisplay(0);
+  eglInitialize(dpy, NULL, NULL);
 
   /* Select type of Display mode:
      Double buffer
@@ -136,23 +128,15 @@ void create_gl(void) {
   if (glut_display_mode & GLUT_DEPTH)
     attrib_list[11] = 16;
 
-  EGLCHK(eglChooseConfig(dpy, attrib_list, &config, 1, &num_configs));
+  eglChooseConfig(dpy, attrib_list, &config, 1, &num_configs);
 
   if (num_configs == 0) {
-    __pspgl_log("glutCreateWindow: eglChooseConfig returned no configurations for display mode %x\n",
-                glut_display_mode);
+    printf("glutCreateWindow: eglChooseConfig returned no configurations for display mode %x\n", glut_display_mode);
   }
 
-#if 0
-	psp_log("eglChooseConfig() returned config 0x%04x\n", (unsigned int)config);
-#endif
-
-  EGLCHK(eglGetConfigAttrib(dpy, config, EGL_WIDTH, &width));
-  EGLCHK(eglGetConfigAttrib(dpy, config, EGL_HEIGHT, &height));
-
-  EGLCHK(ctx = eglCreateContext(dpy, config, NULL, NULL));
-  EGLCHK(surface = eglCreateWindowSurface(dpy, config, 0, NULL));
-  EGLCHK(eglMakeCurrent(dpy, surface, surface, ctx));
+  ctx = eglCreateContext(dpy, config, NULL, NULL);
+  surface = eglCreateWindowSurface(dpy, config, 0, NULL);
+  eglMakeCurrent(dpy, surface, surface, ctx);
 }
 
 // process all input: the handler will figure out which are pressed/released this frame and react accordingly

@@ -3,7 +3,7 @@
 #include <integrity/common/resource_manager.h>
 
 #define GAMEJAM_LOG_GROUP "image_loader"
-#define GAMEJAM_LOG_LEVEL (0)
+#define GAMEJAM_LOG_LEVEL (2)
 #include <gamejam/log.h>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -129,7 +129,7 @@ void IMG_unload(tx_image* img) {
 }
 
 void IMG_destroy(tx_image** img) {
-  GAMEJAM_LOG_DEBUG("%s called ", __func__);
+  // GAMEJAM_LOG_DEBUG("%s called ", __func__);
   if ((*img) != NULL) {
     IMG_unload((*img));
 

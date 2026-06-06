@@ -10,7 +10,7 @@
 #include "../private.h"
 
 char error_str[64] = {0};
-extern struct scene null_scene;
+extern IntegrityScene null_scene;
 
 void Game_Main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv) {
   extern int main(int argc, char** argv);
@@ -38,10 +38,10 @@ void Host_Input(__attribute__((unused)) float time) {
 
 static inline void Host_Render3D(float time) {
   RNDR_Reset();
-  scene* scene_current = SCN_Current();
+  IntegrityScene* scene_current = SCN_Current();
 
   if (scene_current->flags & SCENE_FALLTHROUGH_RENDER) {
-    scene* next_scene = SCN_Peek();
+    IntegrityScene* next_scene = SCN_Peek();
     if (next_scene->render3D)
       (*next_scene->render3D)(time);
   }
@@ -52,10 +52,10 @@ static inline void Host_Render3D(float time) {
 static inline void Host_Render2D(float time) {
   UI_Set2D();
   UI_TextColorEx(1.0f, 1.0f, 1.0f, 1.0f);
-  scene* scene_current = SCN_Current();
+  IntegrityScene* scene_current = SCN_Current();
 
   if (scene_current->flags & SCENE_FALLTHROUGH_RENDER) {
-    scene* next = SCN_Peek();
+    IntegrityScene* next = SCN_Peek();
     if (next->render2D)
       (*next->render2D)(time);
   }
@@ -64,14 +64,14 @@ static inline void Host_Render2D(float time) {
 }
 
 void Host_Update(float time) {
-  scene* scene_current = SCN_Current();
+  IntegrityScene* scene_current = SCN_Current();
   bool update_fallthrough = scene_current->flags & SCENE_FALLTHROUGH_UPDATE;
 
   if (scene_current->update)
     (*scene_current->update)(time);
 
   if (update_fallthrough) {
-    scene* next = SCN_Peek();
+    IntegrityScene* next = SCN_Peek();
     if (next->update)
       (*next->update)(time);
   }

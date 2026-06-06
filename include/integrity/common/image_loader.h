@@ -29,7 +29,7 @@ sprite IMG_create_sprite(tx_image* img, int x, int y, int x2, int y2);
 sprite IMG_create_sprite_scaled(tx_image* img, int x, int y, int x2, int y2, float scale);
 
 static inline sprite IMG_create_sprite_scaled_alt(tx_image* img, int x, int y, int w, int h, float scale) {
-  return IMG_create_sprite(img, (int)(x * scale), (int)(y * scale), (int)((x + w) * scale), (int)((y + h) * scale));
+  return IMG_create_sprite(img, (int)((float)x * scale), (int)((float)y * scale), (int)((float)(x + w) * scale), (int)((float)(y + h) * scale));
 }
 
 static inline sprite IMG_create_sprite_alt(tx_image* img, int x, int y, int w, int h) {

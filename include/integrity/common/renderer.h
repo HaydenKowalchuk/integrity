@@ -23,34 +23,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GLES/egl.h>
-#undef psp_log
-extern void __pspgl_log(const char* fmt, ...);
-/* disable verbose logging to "ms0:/log.txt" */
-#if 0
-#define psp_log(x...) __pspgl_log(x)
-#else
-#define psp_log(x...) \
-  do {                \
-  } while (0)
-#endif
-
-/* enable EGLerror logging to "ms0:/log.txt" */
-#if 0
-#define EGLCHK(x)                                \
-  do {                                           \
-    EGLint errcode;                              \
-    x;                                           \
-    errcode = eglGetError();                     \
-    if (errcode != EGL_SUCCESS) {                \
-      __pspgl_log("%s (%d): EGL error 0x%04x\n", \
-                  __FUNCTION__,                  \
-                  __LINE__,                      \
-                  (unsigned int)errcode);        \
-    }                                            \
-  } while (0)
-#else
-#define EGLCHK(x) x
-#endif
 #endif
 
 /* Override gluPerspective & gluLookAt on desktop */

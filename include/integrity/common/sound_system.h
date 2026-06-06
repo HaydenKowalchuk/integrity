@@ -8,7 +8,7 @@
 #define SOUND (1)
 #endif
 #if defined(PSP)
-#define SOUND (1)
+// #define SOUND (1)
 #endif
 #if defined(_arch_dreamcast)
 #define SOUND (1)

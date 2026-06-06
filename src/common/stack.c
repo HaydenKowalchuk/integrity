@@ -1,11 +1,12 @@
 #include <integrity/common/resource_manager.h>
 #include <integrity/common/stack.h>
+#include <string.h>
 
 static int skip_init = 0;
 
-scene empty = {.flags = INT_MIN};
+IntegrityScene empty = {.flags = INT_MIN};
 
-struct StackNode* newNode(scene data) {
+struct StackNode* newNode(IntegrityScene data) {
   struct StackNode* stackNode = (struct StackNode*)malloc(sizeof(struct StackNode));
   stackNode->data = data;
   stackNode->next = NULL;
@@ -16,11 +17,11 @@ bool isEmpty(struct StackNode* root) {
   return !root;
 }
 
-void push(struct StackNode** root, scene data) {
+void push(struct StackNode** root, IntegrityScene data) {
   struct StackNode* stackNode = newNode(data);
   stackNode->next = *root;
   *root = stackNode;
-  struct scene* current = &(*root)->data;
+  struct IntegrityScene* current = &(*root)->data;
 
   /* Call Init */
   if (current->init && !skip_init) {
@@ -28,15 +29,15 @@ void push(struct StackNode** root, scene data) {
   }
 }
 
-scene pop(struct StackNode** root) {
+IntegrityScene pop(struct StackNode** root) {
   if (isEmpty(*root)) {
-    return (scene){.flags = INT_MIN};
+    return (IntegrityScene){.flags = INT_MIN};
   }
 
   struct StackNode* temp = *root;
   *root = (*root)->next;
-  struct scene* popped = &temp->data;
-  struct scene ret = *popped;
+  struct IntegrityScene* popped = &temp->data;
+  struct IntegrityScene ret = *popped;
 
   /* Call Exit */
   if (popped->exit) {
@@ -53,7 +54,7 @@ scene pop(struct StackNode** root) {
   return ret;
 }
 
-scene* peek(struct StackNode** root) {
+IntegrityScene* peek(struct StackNode** root) {
   if (isEmpty(*root)) {
     return &empty;
   }

@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-typedef struct scene {
+typedef struct IntegrityScene {
   void (*init)(void);
   void (*exit)(void);
   void (*render2D)(float);
@@ -10,25 +10,25 @@ typedef struct scene {
   void (*update)(float);
   int flags;
   void* context;
-} scene;
+} IntegrityScene;
 
-#define STARTUP_SCENE(_init, _exit, _render2, _render3, _update, _flags) struct scene scene_start = {_init, _exit, _render2, _render3, _update, _flags}
-#define SCENE(_local, _init, _exit, _render2, _render3, _update, _flags) struct scene _local = {_init, _exit, _render2, _render3, _update, _flags}
+#define STARTUP_SCENE(_init, _exit, _render2, _render3, _update, _flags) IntegrityScene scene_start = {_init, _exit, _render2, _render3, _update, _flags, NULL}
+#define SCENE(_local, _init, _exit, _render2, _render3, _update, _flags) IntegrityScene _local = {_init, _exit, _render2, _render3, _update, _flags, NULL}
 
-extern scene scene_start;
+extern IntegrityScene scene_start;
 
 #define SCENE_FALLTHROUGH_RENDER 1
 #define SCENE_FALLTHROUGH_UPDATE 2
 #define SCENE_BLOCK 4
 #define SCENE_NO_REINIT_CHILD 8
 
-scene* SCN_ChangeTo(scene next);
-scene* SCN_Push(scene next);
-scene* SCN_Pop(void);
-scene* SCN_Current(void);
-scene* SCN_Peek(void);
+IntegrityScene* SCN_ChangeTo(IntegrityScene next);
+IntegrityScene* SCN_Push(IntegrityScene next);
+IntegrityScene* SCN_Pop(void);
+IntegrityScene* SCN_Current(void);
+IntegrityScene* SCN_Peek(void);
 
 void SCN_SetContext(void* ctx);
 void* SCN_GetContext(void);
-void SCN_SetNextScene(scene* next);
-scene* SCN_GetNextScene(void);
+void SCN_SetNextScene(IntegrityScene* next);
+IntegrityScene* SCN_GetNextScene(void);

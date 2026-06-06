@@ -399,9 +399,10 @@ void UI_Set2D(void) {
   glLoadIdentity();
   glOrtho(0, 640, 480, 0, -1, 1);
 
-  /* Possible sources of issues */
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
-  // glDisable(GL_CULL_FACE);
 
   glEnable(GL_BLEND);
 
@@ -429,7 +430,7 @@ void DrawQuad_NoTex(const dimen_RECT* _rect_pos) {
   glEnableClientState(GL_COLOR_ARRAY);
 
   glVertexPointer(3, GL_FLOAT, 0, vertex);
-  glColorPointer(4, GL_UNSIGNED_BYTE, 0, (uint8_t*)&color_arr[0]);
+  glColorPointer(RGBA_FORMAT, GL_UNSIGNED_BYTE, 0, (uint8_t*)&color_arr[0]);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -460,7 +461,7 @@ void DrawQuad(const dimen_RECT* const _rect_pos, const dimen_FRECT* const rect_t
 
   glVertexPointer(3, GL_FLOAT, 0, vertex);
   glTexCoordPointer(2, GL_FLOAT, 0, texcoord);
-  glColorPointer(4, GL_UNSIGNED_BYTE, 0, color_arr);
+  glColorPointer(RGBA_FORMAT, GL_UNSIGNED_BYTE, 0, (uint8_t*)&color_arr[0]);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glDisableClientState(GL_COLOR_ARRAY);
@@ -491,7 +492,7 @@ void DrawQuad_RotEx(const dimen_RECT* const _rect_pos, const dimen_FRECT* const 
 
   glVertexPointer(3, GL_FLOAT, 0, vertex);
   glTexCoordPointer(2, GL_FLOAT, 0, texcoord);
-  glColorPointer(4, GL_UNSIGNED_BYTE, 0, color_arr);
+  glColorPointer(RGBA_FORMAT, GL_UNSIGNED_BYTE, 0, (uint8_t*)&color_arr[0]);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glDisableClientState(GL_COLOR_ARRAY);

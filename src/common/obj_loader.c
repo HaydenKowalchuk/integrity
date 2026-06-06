@@ -6,7 +6,7 @@
 #include <integrity/common/resource_manager.h>
 
 #define GAMEJAM_LOG_GROUP "obj_loader"
-#define GAMEJAM_LOG_LEVEL (1)
+#define GAMEJAM_LOG_LEVEL (2)
 #include <gamejam/log.h>
 
 const char* safe_dirname(const char* path) {
@@ -232,11 +232,7 @@ static int LoadObjAndConvert(const char* path, model_obj* obj) {
   int num_triangles = attrib.num_face_num_verts;
   GAMEJAM_LOG_DEBUG("Num verts: %d", attrib.num_face_num_verts - 1);
 
-#if defined(_arch_dreamcast) || defined(DESKTOP)
-  glvert_fast_t* verts = malloc(sizeof(glvert_fast_t) * num_triangles * 3);
-#else
-  psp_fast_t* verts = malloc(sizeof(psp_fast_t) * num_triangles * 3);
-#endif
+  VtxFmt* verts = malloc(sizeof(VtxFmt) * num_triangles * 3);
 
   for (i = 0; i < attrib.num_face_num_verts; i++) {
     assert(attrib.face_num_verts[i] % 3 == 0); /* assume all triangle faces. */
@@ -352,17 +348,10 @@ static int LoadObjAndConvert(const char* path, model_obj* obj) {
           uint8_t r = (c[k][0] * 255.0f);
           uint8_t g = (c[k][1] * 255.0f);
           uint8_t b = (c[k][2] * 255.0f);
-          uint8_t a = 255;
-#if defined(__PSP__)
-          // not
-          verts[(3 * i) + k].color.packed = PACK_ARGB8888_OBJ(b, g, r, a);
-#else
-          verts[(3 * i) + k].color.packed = PACK_ARGB8888(r, g, b, a);
-#endif
-          // verts[(3 * i) + k].color.named.r = (c[k][0] * 255.0f);
-          // verts[(3 * i) + k].color.named.g = (c[k][1] * 255.0f);
-          // verts[(3 * i) + k].color.named.b = (c[k][2] * 255.0f);
-          // verts[(3 * i) + k].color.named.a = 255;
+          verts[(3 * i) + k].color.named.r = r;
+          verts[(3 * i) + k].color.named.g = g;
+          verts[(3 * i) + k].color.named.b = b;
+          verts[(3 * i) + k].color.named.a = 255;
         } else {
           // vb[(3 * stride * i) + k * stride + 5] =
           //     materials[attrib.material_ids[i]].diffuse[0];
@@ -459,13 +448,7 @@ GLuint RNDR_CreateTextureFromImage(tx_image* img) {
 }
 
 void OBJ_bind(model_obj* obj) {
-#if defined(_arch_dreamcast) || defined(DESKTOP)
-  glVertexPointer(3, GL_FLOAT, sizeof(glvert_fast_t), &obj->tris[0].vert);
-  glTexCoordPointer(2, GL_FLOAT, sizeof(glvert_fast_t), &obj->tris[0].texture);
-  glColorPointer(RGBA_FORMAT, GL_UNSIGNED_BYTE, sizeof(glvert_fast_t), &obj->tris[0].color);
-#else
-  glVertexPointer(3, GL_FLOAT, sizeof(psp_fast_t), &obj->tris[0].vert);
-  glTexCoordPointer(2, GL_FLOAT, sizeof(psp_fast_t), &obj->tris[0].texture);
-  glColorPointer(RGBA_FORMAT, GL_UNSIGNED_BYTE, sizeof(psp_fast_t), &obj->tris[0].color);
-#endif
+  glVertexPointer(3, GL_FLOAT, sizeof(VtxFmt), &obj->tris[0].vert);
+  glTexCoordPointer(2, GL_FLOAT, sizeof(VtxFmt), &obj->tris[0].texture);
+  glColorPointer(RGBA_FORMAT, GL_UNSIGNED_BYTE, sizeof(VtxFmt), &obj->tris[0].color);
 }

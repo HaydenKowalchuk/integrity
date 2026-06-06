@@ -3,17 +3,17 @@
 #include <integrity/common/stack.h>
 
 struct StackNode* scene_root;
-scene scene_current;
+IntegrityScene scene_current;
 
 static void* scene_context = NULL;
-static scene* scene_next = NULL;
+static IntegrityScene* scene_next = NULL;
 
-scene* SCN_Push(scene next) {
+IntegrityScene* SCN_Push(IntegrityScene next) {
   push(&scene_root, next);
   return &scene_root->data;
 }
 
-scene* SCN_ChangeTo(scene next) {
+IntegrityScene* SCN_ChangeTo(IntegrityScene next) {
   pop(&scene_root);
   push(&scene_root, next);
 
@@ -21,7 +21,7 @@ scene* SCN_ChangeTo(scene next) {
   return peek(&scene_root->next);
 }
 
-scene* SCN_Pop(void) {
+IntegrityScene* SCN_Pop(void) {
   pop(&scene_root);
 
   scene_context = NULL;
@@ -29,11 +29,11 @@ scene* SCN_Pop(void) {
   return SCN_Current();
 }
 
-scene* SCN_Current(void) {
+IntegrityScene* SCN_Current(void) {
   return peek(&scene_root);
 }
 
-scene* SCN_Peek(void) {
+IntegrityScene* SCN_Peek(void) {
   return peek(&scene_root->next);
 }
 
@@ -45,10 +45,10 @@ void* SCN_GetContext(void) {
   return scene_context;
 }
 
-void SCN_SetNextScene(scene* next) {
+void SCN_SetNextScene(IntegrityScene* next) {
   scene_next = next;
 }
 
-scene* SCN_GetNextScene(void) {
+IntegrityScene* SCN_GetNextScene(void) {
   return scene_next;
 }
